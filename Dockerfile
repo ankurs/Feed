@@ -1,12 +1,13 @@
-From golang:1.10
+From golang:1.11
 
-RUN go get github.com/derekparker/delve/cmd/dlv
+RUN apt-get update
+RUN apt-get install supervisor -y
 
 RUN mkdir -p /go/src/github.com/ankurs/Feed
 RUN mkdir -p /opt/config/
 
 COPY . /go/src/github.com/ankurs/Feed
-COPY ./Feed/Feed.toml /opt/config/
+COPY ./Feed/feed.toml /opt/config/
 
 RUN go install github.com/ankurs/Feed/Feed/cmd/server
 

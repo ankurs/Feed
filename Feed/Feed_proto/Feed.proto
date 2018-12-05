@@ -2,31 +2,125 @@ syntax = "proto3";
 
 package Feed_proto;
 
-service Feed{
-    rpc Echo (EchoRequest) returns (EchoResponse){
+// StatusResponse is the response sent by the server with every response
+message StatusResponse {
+    int32 code = 1;
+    bool error = 2;
+    string msg = 3;
+}
+
+// Auth container for uses to authenticate against APIs
+// This data be provided by Acoount Login API
+message Auth {
+    string token = 1;
+}
+
+// Feed service manages user feed
+service Feed {
+    // Fetch fetchs the activity feed
+    rpc Fetch(FeedRequest) returns (FeedResponse) {
     }
-    // ORION:URL: GET/POST/OPTIONS /api/1.0/upper/{msg}
-    rpc Upper (UpperRequest) returns (UpperResponse){
+    /*
+    // Ads an item to the feed
+    rpc Add(AddFeedItemRequest) returns (AddFeedItemResponse) {
     }
+    */
+}
 
-    // ORION:URL: POST/PUT
-    rpc UpperProxy (UpperRequest) returns (UpperResponse) {
+// Verb describes the verb of the activity
+enum Verb {
+    // this verb ensures the activity is ignored
+    IGNORE = 0;
+    // this is used to display a generic feed type
+    GENERIC = 1;
+    LIKE = 2;
+    SHARE = 3;
+    POST = 4;
+}
+
+// UserInfo describes a user
+message UserInfo {
+    string user_name = 1;
+    string email = 2;
+    string first_name = 3;
+    string last_name = 4;
+}
+
+message ObjectInfo {
+    // TODO should type be an enum ?
+    // type of object
+    string type = 1;
+    // identifier of object
+    string id = 2;
+}
+
+// FeedItem describes a single item in the feed
+message FeedItem {
+    // ID of this feed item
+    string id = 1;
+    // user who performed this activity
+    UserInfo actor = 2;
+    // the type of activity
+    Verb verb = 3;
+    // this field is used to describe how the activity should
+    // be handled by older clients when a new activity is added
+    Verb compatibility_verb = 4;
+    // object on which this activity occured
+    string object = 5;
+    // target of user for this activity
+    UserInfo target = 6;
+}
+
+// FeedRequest contains request parameters to fetch feed
+message FeedRequest {
+    // Auth information for this request
+    Auth auth = 1;
+    // number of items to fetch
+    int32 count = 2;
+    // if userID is present we fetch feed OF that user
+    string userID  = 3;
+}
+
+// FeedResponse contains all fields needed to be fetched by the user
+message FeedResponse {
+    StatusResponse status = 1;
+    repeated FeedItem items = 2;
+}
+
+
+// Account services manages user accounts
+service Account {
+    // Register register's a user account in the system
+    rpc Register (RegisterRequest) returns (RegisterResponse) {
+    }
+    rpc Login (LoginRequest) returns (LoginResponse) {
     }
 }
 
 
-message EchoRequest {
-    string msg = 1;
+message RegisterRequest {
+    // NOTE this is a toy service, ideally we should have some captch/csrf token for register
+    //string captcha = 1;
+    reserved 1;
+    string user_name = 2;
+    string password = 3;
+    string email = 4;
+    string first_name = 5;
+    string last_name = 6;
 }
 
-message EchoResponse {
-    string msg = 1;
+message RegisterResponse {
+    StatusResponse status = 1;
+    UserInfo user = 2;
 }
 
-message UpperRequest {
-    string msg = 1;
+message LoginRequest {
+    string user_name = 1;
+    string password = 2;
 }
 
-message UpperResponse {
-    string msg = 1;
+message LoginResponse {
+    StatusResponse status = 1;
+    Auth auth = 2;
+    UserInfo user = 3;
 }

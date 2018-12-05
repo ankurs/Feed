@@ -1,0 +1,43 @@
+version: "3"
+services:
+  feed:
+    build: .
+    ports:
+      - "9281:9281"
+      - "9282:9282"
+      - "9283:9283"
+      - "9284:9284"
+    command: ["server"]
+    container_name: "feed"
+    volumes:
+      - ./Feed:/go/src/github.com/carousell/Feed/Feed
+      - ./vendor:/go/src/github.com/carousell/Feed/vendor
+    depends_on:
+      - redis
+      - cassandra
+      - rabbitmq
+  hystrix_dash:
+    image: "ankur/hystrix-dash"
+    ports:
+      - "9001:9000"
+  zipkin:
+    image: "openzipkin/zipkin"
+    ports:
+      - "9411:9411"
+  cassandra:
+    image: "cassandra:3.11"
+    ports:
+      - "9042:9042"
+    volumes:
+      - /local-data/cassandra:/var/lib/cassandra
+  redis:
+    image: "redis:5"
+    ports:
+      - "6379:6379"
+    volumes:
+      - /local-data/redis:/data
+  rabbitmq:
+    image: "rabbitmq:3-management"
+    ports:
+      - "15672:15672"
+      - "5672:5672"

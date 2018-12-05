@@ -8,10 +8,17 @@ It is generated from these files:
 	Feed.proto
 
 It has these top-level messages:
-	EchoRequest
-	EchoResponse
-	UpperRequest
-	UpperResponse
+	StatusResponse
+	Auth
+	UserInfo
+	ObjectInfo
+	FeedItem
+	FeedRequest
+	FeedResponse
+	RegisterRequest
+	RegisterResponse
+	LoginRequest
+	LoginResponse
 */
 package Feed_proto
 
@@ -35,75 +42,424 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 
-type EchoRequest struct {
-	Msg string `protobuf:"bytes,1,opt,name=msg" json:"msg,omitempty"`
+// Verb describes the verb of the activity
+type Verb int32
+
+const (
+	// this verb ensures the activity is ignored
+	Verb_IGNORE Verb = 0
+	// this is used to display a generic feed type
+	Verb_GENERIC Verb = 1
+	Verb_LIKE    Verb = 2
+	Verb_SHARE   Verb = 3
+	Verb_POST    Verb = 4
+)
+
+var Verb_name = map[int32]string{
+	0: "IGNORE",
+	1: "GENERIC",
+	2: "LIKE",
+	3: "SHARE",
+	4: "POST",
+}
+var Verb_value = map[string]int32{
+	"IGNORE":  0,
+	"GENERIC": 1,
+	"LIKE":    2,
+	"SHARE":   3,
+	"POST":    4,
 }
 
-func (m *EchoRequest) Reset()                    { *m = EchoRequest{} }
-func (m *EchoRequest) String() string            { return proto.CompactTextString(m) }
-func (*EchoRequest) ProtoMessage()               {}
-func (*EchoRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{0} }
+func (x Verb) String() string {
+	return proto.EnumName(Verb_name, int32(x))
+}
+func (Verb) EnumDescriptor() ([]byte, []int) { return fileDescriptor0, []int{0} }
 
-func (m *EchoRequest) GetMsg() string {
+// StatusResponse is the response sent by the server with every response
+type StatusResponse struct {
+	Code  int32  `protobuf:"varint,1,opt,name=code" json:"code,omitempty"`
+	Error bool   `protobuf:"varint,2,opt,name=error" json:"error,omitempty"`
+	Msg   string `protobuf:"bytes,3,opt,name=msg" json:"msg,omitempty"`
+}
+
+func (m *StatusResponse) Reset()                    { *m = StatusResponse{} }
+func (m *StatusResponse) String() string            { return proto.CompactTextString(m) }
+func (*StatusResponse) ProtoMessage()               {}
+func (*StatusResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{0} }
+
+func (m *StatusResponse) GetCode() int32 {
+	if m != nil {
+		return m.Code
+	}
+	return 0
+}
+
+func (m *StatusResponse) GetError() bool {
+	if m != nil {
+		return m.Error
+	}
+	return false
+}
+
+func (m *StatusResponse) GetMsg() string {
 	if m != nil {
 		return m.Msg
 	}
 	return ""
 }
 
-type EchoResponse struct {
-	Msg string `protobuf:"bytes,1,opt,name=msg" json:"msg,omitempty"`
+// Auth container for uses to authenticate against APIs
+// This data be provided by Acoount Login API
+type Auth struct {
+	Token string `protobuf:"bytes,1,opt,name=token" json:"token,omitempty"`
 }
 
-func (m *EchoResponse) Reset()                    { *m = EchoResponse{} }
-func (m *EchoResponse) String() string            { return proto.CompactTextString(m) }
-func (*EchoResponse) ProtoMessage()               {}
-func (*EchoResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{1} }
+func (m *Auth) Reset()                    { *m = Auth{} }
+func (m *Auth) String() string            { return proto.CompactTextString(m) }
+func (*Auth) ProtoMessage()               {}
+func (*Auth) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{1} }
 
-func (m *EchoResponse) GetMsg() string {
+func (m *Auth) GetToken() string {
 	if m != nil {
-		return m.Msg
+		return m.Token
 	}
 	return ""
 }
 
-type UpperRequest struct {
-	Msg string `protobuf:"bytes,1,opt,name=msg" json:"msg,omitempty"`
+// UserInfo describes a user
+type UserInfo struct {
+	UserName  string `protobuf:"bytes,1,opt,name=user_name,json=userName" json:"user_name,omitempty"`
+	Email     string `protobuf:"bytes,2,opt,name=email" json:"email,omitempty"`
+	FirstName string `protobuf:"bytes,3,opt,name=first_name,json=firstName" json:"first_name,omitempty"`
+	LastName  string `protobuf:"bytes,4,opt,name=last_name,json=lastName" json:"last_name,omitempty"`
 }
 
-func (m *UpperRequest) Reset()                    { *m = UpperRequest{} }
-func (m *UpperRequest) String() string            { return proto.CompactTextString(m) }
-func (*UpperRequest) ProtoMessage()               {}
-func (*UpperRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{2} }
+func (m *UserInfo) Reset()                    { *m = UserInfo{} }
+func (m *UserInfo) String() string            { return proto.CompactTextString(m) }
+func (*UserInfo) ProtoMessage()               {}
+func (*UserInfo) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{2} }
 
-func (m *UpperRequest) GetMsg() string {
+func (m *UserInfo) GetUserName() string {
 	if m != nil {
-		return m.Msg
+		return m.UserName
 	}
 	return ""
 }
 
-type UpperResponse struct {
-	Msg string `protobuf:"bytes,1,opt,name=msg" json:"msg,omitempty"`
-}
-
-func (m *UpperResponse) Reset()                    { *m = UpperResponse{} }
-func (m *UpperResponse) String() string            { return proto.CompactTextString(m) }
-func (*UpperResponse) ProtoMessage()               {}
-func (*UpperResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{3} }
-
-func (m *UpperResponse) GetMsg() string {
+func (m *UserInfo) GetEmail() string {
 	if m != nil {
-		return m.Msg
+		return m.Email
 	}
 	return ""
+}
+
+func (m *UserInfo) GetFirstName() string {
+	if m != nil {
+		return m.FirstName
+	}
+	return ""
+}
+
+func (m *UserInfo) GetLastName() string {
+	if m != nil {
+		return m.LastName
+	}
+	return ""
+}
+
+type ObjectInfo struct {
+	// TODO should type be an enum ?
+	// type of object
+	Type string `protobuf:"bytes,1,opt,name=type" json:"type,omitempty"`
+	// identifier of object
+	Id string `protobuf:"bytes,2,opt,name=id" json:"id,omitempty"`
+}
+
+func (m *ObjectInfo) Reset()                    { *m = ObjectInfo{} }
+func (m *ObjectInfo) String() string            { return proto.CompactTextString(m) }
+func (*ObjectInfo) ProtoMessage()               {}
+func (*ObjectInfo) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{3} }
+
+func (m *ObjectInfo) GetType() string {
+	if m != nil {
+		return m.Type
+	}
+	return ""
+}
+
+func (m *ObjectInfo) GetId() string {
+	if m != nil {
+		return m.Id
+	}
+	return ""
+}
+
+// FeedItem describes a single item in the feed
+type FeedItem struct {
+	// ID of this feed item
+	Id string `protobuf:"bytes,1,opt,name=id" json:"id,omitempty"`
+	// user who performed this activity
+	Actor *UserInfo `protobuf:"bytes,2,opt,name=actor" json:"actor,omitempty"`
+	// the type of activity
+	Verb Verb `protobuf:"varint,3,opt,name=verb,enum=Feed_proto.Verb" json:"verb,omitempty"`
+	// this field is used to describe how the activity should
+	// be handled by older clients when a new activity is added
+	CompatibilityVerb Verb `protobuf:"varint,4,opt,name=compatibility_verb,json=compatibilityVerb,enum=Feed_proto.Verb" json:"compatibility_verb,omitempty"`
+	// object on which this activity occured
+	Object string `protobuf:"bytes,5,opt,name=object" json:"object,omitempty"`
+	// target of user for this activity
+	Target *UserInfo `protobuf:"bytes,6,opt,name=target" json:"target,omitempty"`
+}
+
+func (m *FeedItem) Reset()                    { *m = FeedItem{} }
+func (m *FeedItem) String() string            { return proto.CompactTextString(m) }
+func (*FeedItem) ProtoMessage()               {}
+func (*FeedItem) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{4} }
+
+func (m *FeedItem) GetId() string {
+	if m != nil {
+		return m.Id
+	}
+	return ""
+}
+
+func (m *FeedItem) GetActor() *UserInfo {
+	if m != nil {
+		return m.Actor
+	}
+	return nil
+}
+
+func (m *FeedItem) GetVerb() Verb {
+	if m != nil {
+		return m.Verb
+	}
+	return Verb_IGNORE
+}
+
+func (m *FeedItem) GetCompatibilityVerb() Verb {
+	if m != nil {
+		return m.CompatibilityVerb
+	}
+	return Verb_IGNORE
+}
+
+func (m *FeedItem) GetObject() string {
+	if m != nil {
+		return m.Object
+	}
+	return ""
+}
+
+func (m *FeedItem) GetTarget() *UserInfo {
+	if m != nil {
+		return m.Target
+	}
+	return nil
+}
+
+// FeedRequest contains request parameters to fetch feed
+type FeedRequest struct {
+	// Auth information for this request
+	Auth *Auth `protobuf:"bytes,1,opt,name=auth" json:"auth,omitempty"`
+	// number of items to fetch
+	Count int32 `protobuf:"varint,2,opt,name=count" json:"count,omitempty"`
+	// if userID is present we fetch feed OF that user
+	UserID string `protobuf:"bytes,3,opt,name=userID" json:"userID,omitempty"`
+}
+
+func (m *FeedRequest) Reset()                    { *m = FeedRequest{} }
+func (m *FeedRequest) String() string            { return proto.CompactTextString(m) }
+func (*FeedRequest) ProtoMessage()               {}
+func (*FeedRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{5} }
+
+func (m *FeedRequest) GetAuth() *Auth {
+	if m != nil {
+		return m.Auth
+	}
+	return nil
+}
+
+func (m *FeedRequest) GetCount() int32 {
+	if m != nil {
+		return m.Count
+	}
+	return 0
+}
+
+func (m *FeedRequest) GetUserID() string {
+	if m != nil {
+		return m.UserID
+	}
+	return ""
+}
+
+// FeedResponse contains all fields needed to be fetched by the user
+type FeedResponse struct {
+	Status *StatusResponse `protobuf:"bytes,1,opt,name=status" json:"status,omitempty"`
+	Items  []*FeedItem     `protobuf:"bytes,2,rep,name=items" json:"items,omitempty"`
+}
+
+func (m *FeedResponse) Reset()                    { *m = FeedResponse{} }
+func (m *FeedResponse) String() string            { return proto.CompactTextString(m) }
+func (*FeedResponse) ProtoMessage()               {}
+func (*FeedResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{6} }
+
+func (m *FeedResponse) GetStatus() *StatusResponse {
+	if m != nil {
+		return m.Status
+	}
+	return nil
+}
+
+func (m *FeedResponse) GetItems() []*FeedItem {
+	if m != nil {
+		return m.Items
+	}
+	return nil
+}
+
+type RegisterRequest struct {
+	UserName  string `protobuf:"bytes,2,opt,name=user_name,json=userName" json:"user_name,omitempty"`
+	Password  string `protobuf:"bytes,3,opt,name=password" json:"password,omitempty"`
+	Email     string `protobuf:"bytes,4,opt,name=email" json:"email,omitempty"`
+	FirstName string `protobuf:"bytes,5,opt,name=first_name,json=firstName" json:"first_name,omitempty"`
+	LastName  string `protobuf:"bytes,6,opt,name=last_name,json=lastName" json:"last_name,omitempty"`
+}
+
+func (m *RegisterRequest) Reset()                    { *m = RegisterRequest{} }
+func (m *RegisterRequest) String() string            { return proto.CompactTextString(m) }
+func (*RegisterRequest) ProtoMessage()               {}
+func (*RegisterRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{7} }
+
+func (m *RegisterRequest) GetUserName() string {
+	if m != nil {
+		return m.UserName
+	}
+	return ""
+}
+
+func (m *RegisterRequest) GetPassword() string {
+	if m != nil {
+		return m.Password
+	}
+	return ""
+}
+
+func (m *RegisterRequest) GetEmail() string {
+	if m != nil {
+		return m.Email
+	}
+	return ""
+}
+
+func (m *RegisterRequest) GetFirstName() string {
+	if m != nil {
+		return m.FirstName
+	}
+	return ""
+}
+
+func (m *RegisterRequest) GetLastName() string {
+	if m != nil {
+		return m.LastName
+	}
+	return ""
+}
+
+type RegisterResponse struct {
+	Status *StatusResponse `protobuf:"bytes,1,opt,name=status" json:"status,omitempty"`
+	Id     string          `protobuf:"bytes,2,opt,name=id" json:"id,omitempty"`
+}
+
+func (m *RegisterResponse) Reset()                    { *m = RegisterResponse{} }
+func (m *RegisterResponse) String() string            { return proto.CompactTextString(m) }
+func (*RegisterResponse) ProtoMessage()               {}
+func (*RegisterResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{8} }
+
+func (m *RegisterResponse) GetStatus() *StatusResponse {
+	if m != nil {
+		return m.Status
+	}
+	return nil
+}
+
+func (m *RegisterResponse) GetId() string {
+	if m != nil {
+		return m.Id
+	}
+	return ""
+}
+
+type LoginRequest struct {
+	UserName string `protobuf:"bytes,1,opt,name=user_name,json=userName" json:"user_name,omitempty"`
+	Password string `protobuf:"bytes,2,opt,name=password" json:"password,omitempty"`
+}
+
+func (m *LoginRequest) Reset()                    { *m = LoginRequest{} }
+func (m *LoginRequest) String() string            { return proto.CompactTextString(m) }
+func (*LoginRequest) ProtoMessage()               {}
+func (*LoginRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{9} }
+
+func (m *LoginRequest) GetUserName() string {
+	if m != nil {
+		return m.UserName
+	}
+	return ""
+}
+
+func (m *LoginRequest) GetPassword() string {
+	if m != nil {
+		return m.Password
+	}
+	return ""
+}
+
+type LoginResponse struct {
+	Status *StatusResponse `protobuf:"bytes,1,opt,name=status" json:"status,omitempty"`
+	Auth   *Auth           `protobuf:"bytes,2,opt,name=auth" json:"auth,omitempty"`
+	User   *UserInfo       `protobuf:"bytes,3,opt,name=user" json:"user,omitempty"`
+}
+
+func (m *LoginResponse) Reset()                    { *m = LoginResponse{} }
+func (m *LoginResponse) String() string            { return proto.CompactTextString(m) }
+func (*LoginResponse) ProtoMessage()               {}
+func (*LoginResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{10} }
+
+func (m *LoginResponse) GetStatus() *StatusResponse {
+	if m != nil {
+		return m.Status
+	}
+	return nil
+}
+
+func (m *LoginResponse) GetAuth() *Auth {
+	if m != nil {
+		return m.Auth
+	}
+	return nil
+}
+
+func (m *LoginResponse) GetUser() *UserInfo {
+	if m != nil {
+		return m.User
+	}
+	return nil
 }
 
 func init() {
-	proto.RegisterType((*EchoRequest)(nil), "Feed_proto.EchoRequest")
-	proto.RegisterType((*EchoResponse)(nil), "Feed_proto.EchoResponse")
-	proto.RegisterType((*UpperRequest)(nil), "Feed_proto.UpperRequest")
-	proto.RegisterType((*UpperResponse)(nil), "Feed_proto.UpperResponse")
+	proto.RegisterType((*StatusResponse)(nil), "Feed_proto.StatusResponse")
+	proto.RegisterType((*Auth)(nil), "Feed_proto.Auth")
+	proto.RegisterType((*UserInfo)(nil), "Feed_proto.UserInfo")
+	proto.RegisterType((*ObjectInfo)(nil), "Feed_proto.ObjectInfo")
+	proto.RegisterType((*FeedItem)(nil), "Feed_proto.FeedItem")
+	proto.RegisterType((*FeedRequest)(nil), "Feed_proto.FeedRequest")
+	proto.RegisterType((*FeedResponse)(nil), "Feed_proto.FeedResponse")
+	proto.RegisterType((*RegisterRequest)(nil), "Feed_proto.RegisterRequest")
+	proto.RegisterType((*RegisterResponse)(nil), "Feed_proto.RegisterResponse")
+	proto.RegisterType((*LoginRequest)(nil), "Feed_proto.LoginRequest")
+	proto.RegisterType((*LoginResponse)(nil), "Feed_proto.LoginResponse")
+	proto.RegisterEnum("Feed_proto.Verb", Verb_name, Verb_value)
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -117,11 +473,8 @@ const _ = grpc.SupportPackageIsVersion4
 // Client API for Feed service
 
 type FeedClient interface {
-	Echo(ctx context.Context, in *EchoRequest, opts ...grpc.CallOption) (*EchoResponse, error)
-	// ORION:URL: GET/POST/OPTIONS /api/1.0/upper/{msg}
-	Upper(ctx context.Context, in *UpperRequest, opts ...grpc.CallOption) (*UpperResponse, error)
-	// ORION:URL: POST/PUT
-	UpperProxy(ctx context.Context, in *UpperRequest, opts ...grpc.CallOption) (*UpperResponse, error)
+	// Fetch fetchs the activity feed
+	Fetch(ctx context.Context, in *FeedRequest, opts ...grpc.CallOption) (*FeedResponse, error)
 }
 
 type feedClient struct {
@@ -132,27 +485,9 @@ func NewFeedClient(cc *grpc.ClientConn) FeedClient {
 	return &feedClient{cc}
 }
 
-func (c *feedClient) Echo(ctx context.Context, in *EchoRequest, opts ...grpc.CallOption) (*EchoResponse, error) {
-	out := new(EchoResponse)
-	err := grpc.Invoke(ctx, "/Feed_proto.Feed/Echo", in, out, c.cc, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *feedClient) Upper(ctx context.Context, in *UpperRequest, opts ...grpc.CallOption) (*UpperResponse, error) {
-	out := new(UpperResponse)
-	err := grpc.Invoke(ctx, "/Feed_proto.Feed/Upper", in, out, c.cc, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *feedClient) UpperProxy(ctx context.Context, in *UpperRequest, opts ...grpc.CallOption) (*UpperResponse, error) {
-	out := new(UpperResponse)
-	err := grpc.Invoke(ctx, "/Feed_proto.Feed/UpperProxy", in, out, c.cc, opts...)
+func (c *feedClient) Fetch(ctx context.Context, in *FeedRequest, opts ...grpc.CallOption) (*FeedResponse, error) {
+	out := new(FeedResponse)
+	err := grpc.Invoke(ctx, "/Feed_proto.Feed/Fetch", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -162,11 +497,8 @@ func (c *feedClient) UpperProxy(ctx context.Context, in *UpperRequest, opts ...g
 // Server API for Feed service
 
 type FeedServer interface {
-	Echo(context.Context, *EchoRequest) (*EchoResponse, error)
-	// ORION:URL: GET/POST/OPTIONS /api/1.0/upper/{msg}
-	Upper(context.Context, *UpperRequest) (*UpperResponse, error)
-	// ORION:URL: POST/PUT
-	UpperProxy(context.Context, *UpperRequest) (*UpperResponse, error)
+	// Fetch fetchs the activity feed
+	Fetch(context.Context, *FeedRequest) (*FeedResponse, error)
 }
 
 func RegisterFeedServer(s *grpc.Server, srv FeedServer) {
@@ -174,56 +506,20 @@ func RegisterFeedServer(s *grpc.Server, srv FeedServer) {
 
 }
 
-func _Feed_Echo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(EchoRequest)
+func _Feed_Fetch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FeedRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FeedServer).Echo(ctx, in)
+		return srv.(FeedServer).Fetch(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/Feed_proto.Feed/Echo",
+		FullMethod: "/Feed_proto.Feed/Fetch",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FeedServer).Echo(ctx, req.(*EchoRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Feed_Upper_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpperRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(FeedServer).Upper(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/Feed_proto.Feed/Upper",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FeedServer).Upper(ctx, req.(*UpperRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Feed_UpperProxy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpperRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(FeedServer).UpperProxy(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/Feed_proto.Feed/UpperProxy",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FeedServer).UpperProxy(ctx, req.(*UpperRequest))
+		return srv.(FeedServer).Fetch(ctx, req.(*FeedRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -233,16 +529,108 @@ var _Feed_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*FeedServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Echo",
-			Handler:    _Feed_Echo_Handler,
+			MethodName: "Fetch",
+			Handler:    _Feed_Fetch_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "Feed.proto",
+}
+
+// Client API for Account service
+
+type AccountClient interface {
+	// Register register's a user account in the system
+	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
+	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
+}
+
+type accountClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewAccountClient(cc *grpc.ClientConn) AccountClient {
+	return &accountClient{cc}
+}
+
+func (c *accountClient) Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error) {
+	out := new(RegisterResponse)
+	err := grpc.Invoke(ctx, "/Feed_proto.Account/Register", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *accountClient) Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error) {
+	out := new(LoginResponse)
+	err := grpc.Invoke(ctx, "/Feed_proto.Account/Login", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Server API for Account service
+
+type AccountServer interface {
+	// Register register's a user account in the system
+	Register(context.Context, *RegisterRequest) (*RegisterResponse, error)
+	Login(context.Context, *LoginRequest) (*LoginResponse, error)
+}
+
+func RegisterAccountServer(s *grpc.Server, srv AccountServer) {
+	s.RegisterService(&_Account_serviceDesc, srv)
+
+}
+
+func _Account_Register_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RegisterRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AccountServer).Register(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Feed_proto.Account/Register",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AccountServer).Register(ctx, req.(*RegisterRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Account_Login_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LoginRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AccountServer).Login(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Feed_proto.Account/Login",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AccountServer).Login(ctx, req.(*LoginRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+var _Account_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "Feed_proto.Account",
+	HandlerType: (*AccountServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Register",
+			Handler:    _Account_Register_Handler,
 		},
 		{
-			MethodName: "Upper",
-			Handler:    _Feed_Upper_Handler,
-		},
-		{
-			MethodName: "UpperProxy",
-			Handler:    _Feed_UpperProxy_Handler,
+			MethodName: "Login",
+			Handler:    _Account_Login_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -252,16 +640,45 @@ var _Feed_serviceDesc = grpc.ServiceDesc{
 func init() { proto.RegisterFile("Feed.proto", fileDescriptor0) }
 
 var fileDescriptor0 = []byte{
-	// 167 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0x72, 0x4b, 0x4d, 0x4d,
-	0xd1, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x02, 0xb3, 0xe3, 0xc1, 0x6c, 0x25, 0x79, 0x2e, 0x6e,
-	0xd7, 0xe4, 0x8c, 0xfc, 0xa0, 0xd4, 0xc2, 0xd2, 0xd4, 0xe2, 0x12, 0x21, 0x01, 0x2e, 0xe6, 0xdc,
-	0xe2, 0x74, 0x09, 0x46, 0x05, 0x46, 0x0d, 0xce, 0x20, 0x10, 0x53, 0x49, 0x81, 0x8b, 0x07, 0xa2,
-	0xa0, 0xb8, 0x20, 0x3f, 0xaf, 0x38, 0x15, 0xbb, 0x8a, 0xd0, 0x82, 0x82, 0xd4, 0x22, 0xdc, 0x66,
-	0x28, 0x72, 0xf1, 0x42, 0x55, 0xe0, 0x32, 0xc4, 0xe8, 0x04, 0x23, 0x17, 0x0b, 0xc8, 0x59, 0x42,
-	0xd6, 0x5c, 0x2c, 0x20, 0xfb, 0x84, 0xc4, 0xf5, 0x10, 0xae, 0xd4, 0x43, 0x72, 0xa2, 0x94, 0x04,
-	0xa6, 0x04, 0xc4, 0x54, 0x25, 0x06, 0x21, 0x3b, 0x2e, 0x56, 0xb0, 0x45, 0x42, 0x28, 0x8a, 0x90,
-	0x5d, 0x27, 0x25, 0x89, 0x45, 0x06, 0xae, 0xdf, 0x99, 0x8b, 0x0b, 0x2c, 0x14, 0x50, 0x94, 0x5f,
-	0x51, 0x49, 0xa6, 0x21, 0x49, 0x6c, 0x60, 0x61, 0x63, 0x40, 0x00, 0x00, 0x00, 0xff, 0xff, 0x70,
-	0xb4, 0xee, 0x75, 0x73, 0x01, 0x00, 0x00,
+	// 640 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x52, 0xcd, 0x6e, 0xd3, 0x40,
+	0x10, 0xae, 0x9d, 0xb5, 0x6b, 0x4f, 0x4a, 0x31, 0xab, 0x0a, 0x4c, 0x5a, 0xa4, 0xc8, 0xe2, 0x10,
+	0x55, 0xa8, 0x42, 0xe1, 0x8a, 0x8a, 0x2a, 0x9a, 0x86, 0x40, 0xd5, 0xa2, 0x2d, 0xf4, 0x5a, 0x39,
+	0xce, 0x36, 0x35, 0xd4, 0xde, 0xb0, 0xbb, 0x06, 0xf5, 0x35, 0xe0, 0x0d, 0x78, 0x45, 0x5e, 0x00,
+	0xed, 0x8f, 0x69, 0x1c, 0x9a, 0x5c, 0x7a, 0xdb, 0x99, 0x6f, 0x66, 0xbf, 0x6f, 0x66, 0x3e, 0x80,
+	0x23, 0x4a, 0x27, 0x7b, 0x33, 0xce, 0x24, 0xc3, 0xfa, 0x7d, 0xa1, 0xdf, 0xc9, 0x31, 0x6c, 0x9e,
+	0xc9, 0x54, 0x56, 0x82, 0x50, 0x31, 0x63, 0xa5, 0xa0, 0x18, 0x03, 0xca, 0xd8, 0x84, 0xc6, 0x4e,
+	0xd7, 0xe9, 0x79, 0x44, 0xbf, 0xf1, 0x16, 0x78, 0x94, 0x73, 0xc6, 0x63, 0xb7, 0xeb, 0xf4, 0x02,
+	0x62, 0x02, 0x1c, 0x41, 0xab, 0x10, 0xd3, 0xb8, 0xd5, 0x75, 0x7a, 0x21, 0x51, 0xcf, 0x64, 0x07,
+	0xd0, 0x41, 0x25, 0xaf, 0x54, 0xbd, 0x64, 0x5f, 0x69, 0xa9, 0x3f, 0x09, 0x89, 0x09, 0x92, 0x1b,
+	0x08, 0x3e, 0x0b, 0xca, 0x47, 0xe5, 0x25, 0xc3, 0xdb, 0x10, 0x56, 0x82, 0xf2, 0x8b, 0x32, 0x2d,
+	0xa8, 0xad, 0x0a, 0x54, 0xe2, 0x24, 0x2d, 0x0c, 0x5d, 0x91, 0xe6, 0xd7, 0x9a, 0x2e, 0x24, 0x26,
+	0xc0, 0xcf, 0x00, 0x2e, 0x73, 0x2e, 0xa4, 0xe9, 0x31, 0xac, 0xa1, 0xce, 0xe8, 0xa6, 0x6d, 0x08,
+	0xaf, 0xd3, 0x1a, 0x45, 0xe6, 0x47, 0x95, 0x50, 0x60, 0xf2, 0x12, 0xe0, 0x74, 0xfc, 0x85, 0x66,
+	0x52, 0x93, 0x63, 0x40, 0xf2, 0x66, 0x56, 0xf3, 0xea, 0x37, 0xde, 0x04, 0x37, 0x9f, 0x58, 0x42,
+	0x37, 0x9f, 0x24, 0x7f, 0x1c, 0x08, 0xd4, 0x9e, 0x46, 0x92, 0x16, 0x16, 0x74, 0x6a, 0x10, 0xef,
+	0x82, 0x97, 0x66, 0xd2, 0xee, 0xa3, 0xdd, 0xdf, 0xda, 0xbb, 0xdd, 0xe8, 0x5e, 0x3d, 0x22, 0x31,
+	0x25, 0xf8, 0x39, 0xa0, 0xef, 0x94, 0x8f, 0xb5, 0xe0, 0xcd, 0x7e, 0x34, 0x5f, 0x7a, 0x4e, 0xf9,
+	0x98, 0x68, 0x14, 0xbf, 0x01, 0x9c, 0xb1, 0x62, 0x96, 0xca, 0x7c, 0x9c, 0x5f, 0xe7, 0xf2, 0xe6,
+	0x42, 0xf7, 0xa0, 0x25, 0x3d, 0x8f, 0x1a, 0xb5, 0x2a, 0x85, 0x1f, 0x83, 0xcf, 0xf4, 0x84, 0xb1,
+	0xa7, 0x65, 0xda, 0x08, 0xbf, 0x00, 0x5f, 0xa6, 0x7c, 0x4a, 0x65, 0xec, 0xaf, 0xd0, 0x6a, 0x6b,
+	0x92, 0x14, 0xda, 0x0a, 0x26, 0xf4, 0x5b, 0x45, 0x85, 0x54, 0xda, 0xd3, 0x4a, 0x5e, 0xe9, 0xc9,
+	0xdb, 0x4d, 0x1d, 0xea, 0xce, 0x44, 0xa3, 0xea, 0x5c, 0x19, 0xab, 0x4a, 0xa9, 0xb7, 0xe1, 0x11,
+	0x13, 0x28, 0x41, 0xea, 0xa0, 0xa3, 0x43, 0x7b, 0x2a, 0x1b, 0x25, 0x25, 0x6c, 0x18, 0x0a, 0xeb,
+	0xb7, 0x3e, 0xf8, 0x42, 0x3b, 0xd0, 0xb2, 0x74, 0xe6, 0x59, 0x9a, 0xde, 0x24, 0xb6, 0x52, 0xed,
+	0x3f, 0x97, 0xb4, 0x10, 0xb1, 0xdb, 0x6d, 0x2d, 0xce, 0x54, 0x1f, 0x8d, 0x98, 0x92, 0xe4, 0xb7,
+	0x03, 0x0f, 0x09, 0x9d, 0xe6, 0x42, 0x52, 0x5e, 0xcf, 0xd5, 0x70, 0x9f, 0xbb, 0xe0, 0xbe, 0x0e,
+	0x04, 0xb3, 0x54, 0x88, 0x1f, 0x8c, 0x4f, 0xac, 0xf4, 0x7f, 0xf1, 0xad, 0x33, 0xd1, 0x72, 0x67,
+	0x7a, 0x2b, 0x9d, 0xe9, 0x37, 0x9d, 0xf9, 0x1e, 0x05, 0x4e, 0xe4, 0x26, 0xe7, 0x10, 0xdd, 0x6a,
+	0xbc, 0xc7, 0x62, 0x16, 0x5d, 0x3c, 0x84, 0x8d, 0x63, 0x36, 0xcd, 0xcb, 0x3b, 0x07, 0x77, 0x56,
+	0x0c, 0xee, 0x36, 0x07, 0x4f, 0x7e, 0x39, 0xf0, 0xc0, 0xfe, 0x74, 0x0f, 0x79, 0xb5, 0x9f, 0xdc,
+	0x95, 0x7e, 0xea, 0x01, 0x52, 0x9a, 0xf4, 0xf2, 0x97, 0x19, 0x56, 0x57, 0xec, 0xee, 0x03, 0xd2,
+	0xe6, 0x07, 0xf0, 0x47, 0xc3, 0x93, 0x53, 0x32, 0x88, 0xd6, 0x70, 0x1b, 0xd6, 0x87, 0x83, 0x93,
+	0x01, 0x19, 0xbd, 0x8d, 0x1c, 0x1c, 0x00, 0x3a, 0x1e, 0x7d, 0x18, 0x44, 0x2e, 0x0e, 0xc1, 0x3b,
+	0x7b, 0x77, 0x40, 0x06, 0x51, 0x4b, 0x25, 0x3f, 0x9e, 0x9e, 0x7d, 0x8a, 0x50, 0xff, 0x10, 0x90,
+	0xfa, 0x1c, 0xbf, 0x06, 0xef, 0x88, 0xca, 0xec, 0x0a, 0x3f, 0x59, 0x74, 0x92, 0x5d, 0x5c, 0x27,
+	0xfe, 0x1f, 0x30, 0xb3, 0x25, 0x6b, 0xfd, 0x9f, 0x0e, 0xac, 0x1f, 0x64, 0xc6, 0xf5, 0x43, 0x08,
+	0xea, 0x43, 0xe2, 0xed, 0xf9, 0x9e, 0x05, 0x0b, 0x76, 0x76, 0xee, 0x06, 0xeb, 0x4f, 0xf1, 0x3e,
+	0x78, 0x7a, 0xdf, 0xb8, 0xc1, 0x3c, 0x7f, 0xcc, 0xce, 0xd3, 0x3b, 0x90, 0xba, 0x7f, 0xec, 0xeb,
+	0xf4, 0xab, 0xbf, 0x01, 0x00, 0x00, 0xff, 0xff, 0xa8, 0x0f, 0x03, 0xef, 0xf9, 0x05, 0x00, 0x00,
 }

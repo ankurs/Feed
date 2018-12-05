@@ -1,9 +1,13 @@
 [orion]
-ReloadOnConfigChange=true
-EnableProtoURL=false
-EnablePrometheusHistogram=true
-ZipkinAddr='http://10.200.0.7:9411/api/v1/spans'
+env="development"
+GRPCPort="9281"
+HTTPPort="9282"
+HystrixPort="9283"
+PprofPort="9284"
+ZipkinAddr="http://zipkin:9411/api/v1/spans"
+rollbar-token=""
+newrelicServiceName="Feed (dev)"
+newrelicapikey=""
 
-[echo]
-AppendText="Yahoo! "
-Debug=false
+[feed]
+key="value"
