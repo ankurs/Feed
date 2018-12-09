@@ -11,3 +11,6 @@ newrelicapikey=""
 
 [feed]
 key="value"
+
+[feed.store]
+CassandraHosts=["cassandra:9042"]

@@ -22,7 +22,8 @@ func main() {
 	defer conn.Close()
 
 	c := proto.NewAccountClient(conn)
-	login(c)
+	//login(c)
+	register(c)
 }
 
 func login(c proto.AccountClient) {
@@ -31,6 +32,20 @@ func login(c proto.AccountClient) {
 	req.UserName = "User"
 	req.Password = "Password"
 	r, err := c.Login(context.Background(), req)
+	if err != nil {
+		log.Fatalf("error: %v", err)
+	}
+	log.Printf("Response : %s", r)
+}
+
+func register(c proto.AccountClient) {
+	req := new(proto.RegisterRequest)
+	req.FirstName = "ABC"
+	req.LastName = "XYZ"
+	req.UserName = "ABCXYZ"
+	req.Email = "ABC@XYZ"
+	req.Password = "password"
+	r, err := c.Register(context.Background(), req)
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}

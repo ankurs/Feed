@@ -1,4 +1,4 @@
-# Orion-Builder [![Build Status](https://travis-ci.com/carousell/Orion-Builder.svg?token=kSVweyyqayUyyfutjTqD&branch=master)](https://travis-ci.com/carousell/Orion-Builder)
+# Activity Feed[![Build Status](https://travis-ci.com/ankurs/Feed.svg?token=kSVweyyqayUyyfutjTqD&branch=master)](https://travis-ci.com/ankurs/Feed)
 
 ## Setup Instructions
 Orion-Builder is written in golang, please follow instructions on [https://golang.org/doc/install](https://golang.org/doc/install) to install, or you can also run
@@ -33,8 +33,8 @@ go get -u github.com/shurcooL/Go-Package-Store/cmd/Go-Package-Store
 ```
 now clone this repo
 ```
-mkdir -p $GOPATH/src/github.com/carousell/
-git clone git@github.com:carousell/Orion-Builder.git $GOPATH/src/github.com/carousell/Orion-Builder
+mkdir -p $GOPATH/src/github.com/ankurs/
+git clone git@github.com:ankurs/Feed.git $GOPATH/src/github.com/ankurs/Feed
 ```
 
 You need the following tools to better develop for go
@@ -42,7 +42,7 @@ You need the following tools to better develop for go
 go get -u github.com/golang/lint/golint
 ```
 
-now you can build the package by using `make build`
+now you can build the package by running `make build` and test the package by running `make ci`
 
 ## gRPC
 for gRPC, you need to follow the following steps
@@ -72,7 +72,7 @@ Please install docker-compose from https://docs.docker.com/compose/ and execute 
 
 ### Links
 Once docker-compose is started
-* Hystix Dashboard is available on [http://192.168.99.100:9001/monitor/monitor.html?streams=%5B%7B%22name%22%3A%22%22%2C%22stream%22%3A%22http%3A%2F%2Fibus%3A9283%2Fhystrix.stream%22%2C%22auth%22%3A%22%22%2C%22delay%22%3A%22%22%7D%5D](http://192.168.99.100:9001/monitor/monitor.html?streams=%5B%7B%22name%22%3A%22%22%2C%22stream%22%3A%22http%3A%2F%2Fibus%3A9283%2Fhystrix.stream%22%2C%22auth%22%3A%22%22%2C%22delay%22%3A%22%22%7D%5D)
+* Hystix Dashboard is available on [http://192.168.99.100:9001/monitor/monitor.html?streams=%5B%7B%22name%22%3A%22%22%2C%22stream%22%3A%22http%3A%2F%2Ffeed%3A9283%2Fhystrix.stream%22%2C%22auth%22%3A%22%22%2C%22delay%22%3A%22%22%7D%5D](http://192.168.99.100:9001/monitor/monitor.html?streams=%5B%7B%22name%22%3A%22%22%2C%22stream%22%3A%22http%3A%2F%2Ffeed%3A9283%2Fhystrix.stream%22%2C%22auth%22%3A%22%22%2C%22delay%22%3A%22%22%7D%5D)
 * Metrics are available on [http://192.168.99.100:9284/metrics](http://192.168.99.100:9284/metrics)
 * Pprof is available on [http://192.168.99.100:9284/debug/pprof/](http://192.168.99.100:9284/debug/pprof/)
     * pprof documentation [https://golang.org/pkg/net/http/pprof/](https://golang.org/pkg/net/http/pprof/)

@@ -88,7 +88,7 @@ message FeedResponse {
 }
 
 
-// Account services manages user accounts
+// Account service manages user accounts
 service Account {
     // Register register's a user account in the system
     rpc Register (RegisterRequest) returns (RegisterResponse) {
@@ -101,7 +101,7 @@ service Account {
 message RegisterRequest {
     // NOTE this is a toy service, ideally we should have some captch/csrf token for register
     //string captcha = 1;
-    reserved 1;
+    reserved 1; // reserving 1 for captcha
     string user_name = 2;
     string password = 3;
     string email = 4;
