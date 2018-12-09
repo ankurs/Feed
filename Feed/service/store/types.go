@@ -13,21 +13,26 @@ type RegisterRequest interface {
 	GetEmail() string
 }
 
-type RegisterResponse interface {
-	GetId() string
-}
-
 type LoginRequest interface {
 	GetUserName() string
 	GetPassword() string
 }
 
 type LoginResponse interface {
-	Gettoken() string
+	GetToken() string
+	GetUserInfo() UserInfo
+}
+
+type UserInfo interface {
+	GetLastName() string
+	GetFirstName() string
+	GetUserName() string
+	GetEmail() string
+	GetId() string
 }
 
 type Storage interface {
-	Register(context.Context, RegisterRequest) (RegisterResponse, error)
+	Register(context.Context, RegisterRequest) (LoginResponse, error)
 	Login(context.Context, LoginRequest) (LoginResponse, error)
 	Close()
 }

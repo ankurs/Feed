@@ -50,13 +50,35 @@ func (s *svc) Register(ctx context.Context, req *proto.RegisterRequest) (*proto.
 		resp.Status = statusCustom(409, true, "username/email already present")
 	} else {
 		resp.Status = statusOK()
-		resp.Id = r.GetId()
+		resp.User = new(proto.UserInfo)
+		resp.User.UserName = r.GetUserInfo().GetUserName()
+		resp.User.FirstName = r.GetUserInfo().GetFirstName()
+		resp.User.LastName = r.GetUserInfo().GetLastName()
+		resp.User.Email = r.GetUserInfo().GetEmail()
+		resp.User.Id = r.GetUserInfo().GetId()
 	}
 	return resp, nil
 }
 
-func (s *svc) Login(context.Context, *proto.LoginRequest) (*proto.LoginResponse, error) {
-	return nil, errors.NewWithStatus("not implemented yet", status.New(codes.Unimplemented, "not implemented yet"))
+func (s *svc) Login(ctx context.Context, req *proto.LoginRequest) (*proto.LoginResponse, error) {
+	resp := new(proto.LoginResponse)
+	r, err := s.storage.Login(ctx, req)
+	if err != nil && err != store.ErrInvalidLogin {
+		return nil, errors.WrapWithStatus(err, "Login", status.New(codes.Internal, "error logging in"))
+	}
+	if err == store.ErrInvalidLogin {
+		resp.Status = statusCustom(401, true, "invalid username/password")
+		return resp, nil
+	}
+	resp.Auth = new(proto.Auth)
+	resp.Auth.Token = r.GetToken()
+	resp.User = new(proto.UserInfo)
+	resp.User.UserName = r.GetUserInfo().GetUserName()
+	resp.User.FirstName = r.GetUserInfo().GetFirstName()
+	resp.User.LastName = r.GetUserInfo().GetLastName()
+	resp.User.Email = r.GetUserInfo().GetEmail()
+	resp.User.Id = r.GetUserInfo().GetId()
+	return resp, nil
 }
 
 func (s *svc) Fetch(context.Context, *proto.FeedRequest) (*proto.FeedResponse, error) {

@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"strings"
 
 	"github.com/afex/hystrix-go/hystrix"
 	"github.com/carousell/Orion/utils/errors"
@@ -18,24 +19,18 @@ type str struct {
 
 var (
 	ErrAlreadyTaken = errors.New("error already taken")
+	ErrInvalidLogin = errors.New("could not login to the account")
 )
 
-type registerResponse struct {
-	id string
-}
-
-func (r registerResponse) GetId() string {
-	return r.id
-}
-
-func (s *str) Register(ctx context.Context, req RegisterRequest) (RegisterResponse, error) {
+func (s *str) Register(ctx context.Context, req RegisterRequest) (LoginResponse, error) {
 	name := "StorageRegister"
 	// zipkin span
 	span, ctx := spanutils.NewInternalSpan(ctx, name)
 	defer span.Finish()
 
-	_, err := s.checkUserName(ctx, req.GetUserName())
-	if err != gocql.ErrNotFound {
+	username := strings.ToLower(req.GetUserName())
+	_, err := s.checkUserName(ctx, username)
+	if cause(err) != gocql.ErrNotFound {
 		if err == nil {
 			return nil, ErrAlreadyTaken
 		}
@@ -43,7 +38,7 @@ func (s *str) Register(ctx context.Context, req RegisterRequest) (RegisterRespon
 	}
 
 	_, err = s.checkEmail(ctx, req.GetEmail())
-	if err != gocql.ErrNotFound {
+	if cause(err) != gocql.ErrNotFound {
 		if err == nil {
 			return nil, ErrAlreadyTaken
 		}
@@ -54,34 +49,83 @@ func (s *str) Register(ctx context.Context, req RegisterRequest) (RegisterRespon
 	if err != nil {
 		return nil, errors.Wrap(err, name)
 	}
-	resp := registerResponse{id: id}
+	resp := loginResponse{
+		userInfo: userInfo{
+			firstname: req.GetFirstName(),
+			lastname:  req.GetLastName(),
+			email:     req.GetEmail(),
+			id:        id,
+			username:  strings.ToLower(req.GetUserName()),
+		},
+	}
 	return resp, nil
 }
 
 func (s *str) Login(ctx context.Context, req LoginRequest) (LoginResponse, error) {
 
-	return nil, nil
+	user, err := s.checkLogin(ctx, req.GetUserName(), req.GetPassword())
+	if err == nil && user != nil {
+		// for now just use id as login token
+		// TODO move to JWT token
+		return loginResponse{token: user.GetId(), userInfo: user}, nil
+	}
+	return nil, errors.Wrap(err, "Login")
 }
 
-func buildInterface(vals ...interface{}) []interface{} {
-	return vals
+func (s *str) checkLogin(ctx context.Context, username, password string) (UserInfo, error) {
+	username = strings.ToLower(username)
+	name := "CheckLogin"
+	query := "SELECT id,password,salt,email,firstname,lastname FROM user.users WHERE username = ?"
+	id := ""
+	pwd := ""
+	salt := ""
+
+	email := ""
+	firstname := ""
+	lastname := ""
+
+	err := s.cassandraExec(
+		ctx, name, query,
+		buildInterface(username),
+		buildInterface(&id, &pwd, &salt, &email, &firstname, &lastname),
+	)
+	if err == nil {
+		log.Info(ctx, "salt", salt, "Password", password)
+		if getPasswordHash(ctx, password, salt) == pwd {
+			return userInfo{
+				email:     email,
+				firstname: firstname,
+				lastname:  lastname,
+				username:  username,
+				id:        id,
+			}, nil
+		} else {
+			return nil, ErrInvalidLogin
+		}
+	}
+	if err == gocql.ErrNotFound {
+		return nil, ErrInvalidLogin
+	}
+	return nil, errors.Wrap(err, name)
 }
 
 func (s *str) createUser(ctx context.Context, req RegisterRequest) (string, error) {
 	name := "CreateUser"
 
-	uuid := uuid.New()
-	query := "INSERT INTO user.users (id, email, firstname, lastname, password, username) VALUES (?,?,?,?,?,?)"
+	id := uuid.New()
+	salt := uuid.New() // TODO replace with crypto secure salt generation
+	query := "INSERT INTO user.users (id, email, firstname, lastname, username, password, salt) VALUES (?,?,?,?,?,?,?)"
 
+	password := getPasswordHash(ctx, req.GetPassword(), salt)
 	err := s.cassandraExec(
 		ctx, name, query,
-		buildInterface(uuid, req.GetEmail(), req.GetFirstName(), req.GetLastName(), req.GetPassword(), req.GetUserName()),
+		buildInterface(id, req.GetEmail(), req.GetFirstName(), req.GetLastName(), strings.ToLower(req.GetUserName()), password, salt),
 		buildInterface(),
 	)
 	if err != nil {
-		return uuid, errors.Wrap(err, name)
+		return id, errors.Wrap(err, name)
 	}
-	return uuid, nil
+	return id, nil
 }
 
 func (s *str) checkUserName(ctx context.Context, username string) (string, error) {

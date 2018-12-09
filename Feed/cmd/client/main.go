@@ -22,15 +22,15 @@ func main() {
 	defer conn.Close()
 
 	c := proto.NewAccountClient(conn)
-	//login(c)
 	register(c)
+	login(c)
 }
 
 func login(c proto.AccountClient) {
 	fmt.Println("making login gRPC call")
 	req := new(proto.LoginRequest)
-	req.UserName = "User"
-	req.Password = "Password"
+	req.UserName = "ABCXYZ"
+	req.Password = "password"
 	r, err := c.Login(context.Background(), req)
 	if err != nil {
 		log.Fatalf("error: %v", err)
