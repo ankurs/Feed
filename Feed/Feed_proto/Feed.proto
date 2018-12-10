@@ -18,10 +18,27 @@ message Auth {
 // Feed service manages user feed
 service Feed {
     // Fetch fetchs the activity feed
-    rpc Fetch(FeedRequest) returns (FeedResponse) {
+    rpc FetchFeed(FeedRequest) returns (FeedResponse) {
     }
     // Ads an item to the feed
-    rpc Add(AddFeedItemRequest) returns (AddFeedItemResponse) {
+    rpc AddFeed(AddFeedItemRequest) returns (AddFeedItemResponse) {
+    }
+}
+
+// Follow service manages follower relationship
+service Follow {
+    rpc AddFollow(FollowRequest) returns (FollowResponse) {
+    }
+    rpc RemoveFollow(UnfollowRequest) returns (UnfollowResponse) {
+    }
+}
+
+// Account service manages user accounts
+service Account {
+    // Register register's a user account in the system
+    rpc Register (RegisterRequest) returns (RegisterResponse) {
+    }
+    rpc Login (LoginRequest) returns (LoginResponse) {
     }
 }
 
@@ -80,22 +97,40 @@ message FeedRequest {
     string userID  = 3;
 }
 
+message AddFeedItemRequest {
+    Auth auth = 1;
+    FeedItem item = 2;
+}
+
+message AddFeedItemResponse {
+    StatusResponse status = 1;
+}
+
 // FeedResponse contains all fields needed to be fetched by the user
 message FeedResponse {
     StatusResponse status = 1;
     repeated FeedItem items = 2;
 }
 
-
-// Account service manages user accounts
-service Account {
-    // Register register's a user account in the system
-    rpc Register (RegisterRequest) returns (RegisterResponse) {
-    }
-    rpc Login (LoginRequest) returns (LoginResponse) {
-    }
+message FollowRequest {
+    Auth auth = 1;
+    string userId = 2;
+    string followingId = 3;
 }
 
+message FollowResponse {
+    StatusResponse status = 1;
+}
+
+message UnfollowRequest {
+    Auth auth = 1;
+    string userId = 2;
+    string followingId = 3;
+}
+
+message UnfollowResponse {
+    StatusResponse status = 1;
+}
 
 message RegisterRequest {
     // NOTE this is a toy service, ideally we should have some captch/csrf token for register

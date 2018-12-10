@@ -9,10 +9,6 @@ import (
 	"golang.org/x/crypto/scrypt"
 )
 
-func buildInterface(vals ...interface{}) []interface{} {
-	return vals
-}
-
 func cause(err error) error {
 	if e, ok := err.(errors.ErrorExt); ok {
 		return e.Cause()

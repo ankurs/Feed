@@ -46,6 +46,34 @@ func RegisterFeedDefaultDecoder(svr orion.Server, decoder orion.Decoder) {
 
 //Streams
 
+// RegisterFollowOrionServer registers Follow to Orion server
+// Services need to pass either ServiceFactory or ServiceFactoryV2 implementation
+func RegisterFollowOrionServer(sf interface{}, orionServer orion.Server) error {
+	err := orionServer.RegisterService(&_Follow_serviceDesc, sf)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// DefaultEncoder
+func RegisterFollowDefaultEncoder(svr orion.Server, encoder orion.Encoder) {
+	orion.RegisterDefaultEncoder(svr, "Follow", encoder)
+}
+
+// DefaultDecoder
+func RegisterFollowDefaultDecoder(svr orion.Server, decoder orion.Decoder) {
+	orion.RegisterDefaultDecoder(svr, "Follow", decoder)
+}
+// Encoders
+
+// Handlers
+
+// Decoders
+
+//Streams
+
 // RegisterAccountOrionServer registers Account to Orion server
 // Services need to pass either ServiceFactory or ServiceFactoryV2 implementation
 func RegisterAccountOrionServer(sf interface{}, orionServer orion.Server) error {

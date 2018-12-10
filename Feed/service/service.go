@@ -81,8 +81,36 @@ func (s *svc) Login(ctx context.Context, req *proto.LoginRequest) (*proto.LoginR
 	return resp, nil
 }
 
-func (s *svc) Fetch(context.Context, *proto.FeedRequest) (*proto.FeedResponse, error) {
-	return nil, errors.NewWithStatus("not implemented yet", status.New(codes.Unimplemented, "not implemented yet"))
+func (s *svc) FetchFeed(context.Context, *proto.FeedRequest) (*proto.FeedResponse, error) {
+	panic("not implemented")
+}
+
+func (s *svc) AddFeed(context.Context, *proto.AddFeedItemRequest) (*proto.AddFeedItemResponse, error) {
+	panic("not implemented")
+}
+
+func (s *svc) AddFollow(ctx context.Context, req *proto.FollowRequest) (*proto.FollowResponse, error) {
+	resp := new(proto.FollowResponse)
+	// TODO validate user id
+	err := s.storage.AddFollow(ctx, req.GetUserId(), req.GetFollowingId())
+	if err != nil {
+		resp.Status = statusCustom(500, true, "could not follow: "+err.Error())
+	} else {
+		resp.Status = statusOK()
+	}
+	return resp, nil
+}
+
+func (s *svc) RemoveFollow(ctx context.Context, req *proto.UnfollowRequest) (*proto.UnfollowResponse, error) {
+	resp := new(proto.UnfollowResponse)
+	// TODO validate user id
+	err := s.storage.RemoveFollow(ctx, req.GetUserId(), req.GetFollowingId())
+	if err != nil {
+		resp.Status = statusCustom(500, true, "could not unfollow: "+err.Error())
+	} else {
+		resp.Status = statusOK()
+	}
+	return resp, nil
 }
 
 func (s *svc) Close() {

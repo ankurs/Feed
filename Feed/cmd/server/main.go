@@ -18,6 +18,7 @@ func main() {
 	// register services
 	proto.RegisterFeedOrionServer(factory, server)
 	proto.RegisterAccountOrionServer(factory, server)
+	proto.RegisterFollowOrionServer(factory, server)
 
 	// register optionals
 	service.RegisterOptionals(server)

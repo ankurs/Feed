@@ -2,7 +2,9 @@ package store
 
 import (
 	"context"
-	"time"
+
+	"github.com/ankurs/Feed/Feed/service/store/cassandra"
+	"github.com/ankurs/Feed/Feed/service/store/db"
 )
 
 type RegisterRequest interface {
@@ -23,29 +25,18 @@ type LoginResponse interface {
 	GetUserInfo() UserInfo
 }
 
-type UserInfo interface {
-	GetLastName() string
-	GetFirstName() string
-	GetUserName() string
-	GetEmail() string
-	GetId() string
-}
+// we type alias it, so that we can saperate them out in future
+type UserInfo = db.UserInfo
 
 type Storage interface {
 	Register(context.Context, RegisterRequest) (LoginResponse, error)
 	Login(context.Context, LoginRequest) (LoginResponse, error)
+	GetUser(ctx context.Context, userID string) (UserInfo, error)
+	AddFollow(ctx context.Context, userId, followingId string) error
+	RemoveFollow(ctx context.Context, userId, followingId string) error
 	Close()
 }
 
 type Config struct {
-	//CassandraHosts are the hosts that storage will connect to
-	CassandraHosts []string
-	//CassandraConsistency is the consistency level for all cassandra calls (ideally this should be set to 'LOCAL_QUORUM')
-	CassandraConsistency string
-	//CassandraConnectTimeout is the time initial connection to cassandra will wait before timing out
-	CassandraConnectTimeout time.Duration
-	//CassandraOperationTimeout is the time each operation will wait before timing out
-	CassandraOperationTimeout time.Duration
-	//NumConns is the number of connections that are maintained per cassandra hosts
-	NumConns int
+	Cassandra cassandra.Config
 }
