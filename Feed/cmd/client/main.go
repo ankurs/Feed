@@ -34,6 +34,9 @@ func main() {
 	follow(f, u1, u2)
 	follow(f, u2, u1)
 	unfollow(f, u1, u2)
+
+	feed := proto.NewFeedClient(conn)
+	addFeedItem(feed, u1)
 }
 
 func login(c proto.AccountClient, user, pwd string) *proto.UserInfo {
@@ -92,11 +95,22 @@ func follow(f proto.FollowClient, u1 *proto.UserInfo, u2 *proto.UserInfo) {
 }
 
 func unfollow(f proto.FollowClient, u1 *proto.UserInfo, u2 *proto.UserInfo) {
-	fmt.Println(u1, u2)
 	req := new(proto.UnfollowRequest)
 	req.UserId = u1.GetId()
 	req.FollowingId = u2.GetId()
 	r, err := f.RemoveFollow(context.Background(), req)
+	if err != nil {
+		log.Fatalf("error: %v", err)
+	}
+	log.Printf("Response : %s", r)
+}
+
+func addFeedItem(f proto.FeedClient, user *proto.UserInfo) {
+	req := new(proto.AddFeedItemRequest)
+	req.Item = new(proto.FeedItem)
+	req.Item.Actor = user.GetId()
+	req.Item.Verb = proto.Verb_POST
+	r, err := f.AddFeed(context.Background(), req)
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}

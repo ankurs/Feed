@@ -3,6 +3,7 @@ package cassandra
 import (
 	"context"
 	"strings"
+	"time"
 
 	"github.com/afex/hystrix-go/hystrix"
 	"github.com/ankurs/Feed/Feed/service/store/db"
@@ -51,6 +52,16 @@ func (c *cas) CassandraExecWithConsistency(ctx context.Context, name, query stri
 		return db.ErrNotFound
 	}
 	return casError
+}
+
+func (c *cas) CassandraGetQuery(ctx context.Context, name, query string, values []interface{}, cons gocql.Consistency) *gocql.Query {
+	// zipkin span
+	span, ctx := spanutils.NewDatastoreSpan(ctx, name, "Cassandra")
+	defer span.Finish()
+	span.SetQuery(query)
+	span.SetTag("values", values)
+
+	return c.casSes.Query(query, values...).Consistency(cons)
 }
 
 func (c *cas) AddFollowing(ctx context.Context, userId, followingId string) error {
@@ -205,6 +216,67 @@ func (c *cas) GetUser(ctx context.Context, userID string) (db.UserInfo, error) {
 		}, nil
 	}
 	return nil, errors.Wrap(err, name)
+}
+
+func (c *cas) AddUserFeedItem(ctx context.Context, userId, itemId string, ts time.Time) error {
+	return c.addFeedEntry(ctx, userId, itemId, ts, "feed.user")
+}
+
+func (c *cas) AddFollowingFeedItem(ctx context.Context, userId, itemId string, ts time.Time) error {
+	return c.addFeedEntry(ctx, userId, itemId, ts, "feed.following")
+}
+
+func (c *cas) addFeedEntry(ctx context.Context, userId, itemId string, ts time.Time, table string) error {
+	name := "AddFeedEntry" + table
+	query := "INSERT INTO " + table + " (user, ts, feed) VALUES (?,?,?)"
+
+	err := c.CassandraExec(
+		ctx, name, query,
+		db.BuildInterface(userId, ts, itemId),
+		db.BuildInterface(),
+	)
+	if err != nil {
+		return errors.Wrap(err, name)
+	}
+	return nil
+}
+
+func (c *cas) CreateFeedItem(ctx context.Context, fi db.FeedInfo, ts time.Time) (string, error) {
+	name := "CreateFeedItem"
+	query := "INSERT INTO feed.items (id, actor, verb, cverb, object, target, ts) VALUES (?,?,?,?,?,?,?)"
+
+	id := uuid.New()
+	err := c.CassandraExec(
+		ctx, name, query,
+		db.BuildInterface(id, fi.GetActor(), fi.GetVerb(), fi.GetCVerb(), fi.GetObject(), fi.GetTarget(), ts),
+		db.BuildInterface(),
+	)
+	if err != nil {
+		return "", errors.Wrap(err, name)
+	}
+	return id, nil
+}
+
+func (c *cas) GetFollowers(ctx context.Context, userId string) ([]string, error) {
+	// TODO implement this as an iterator (gocql.Scan is already an iterator)
+	name := "GetFollowers"
+	query := "SELECT follower FROM follow.follower WHERE user = ?"
+	followers := make([]string, 0)
+	q := c.CassandraGetQuery(
+		ctx, name, query,
+		db.BuildInterface(userId),
+		c.consistency,
+	)
+	scanner := q.Iter().Scanner()
+	for scanner.Next() {
+		follower := ""
+		err := scanner.Scan(&follower)
+		if err != nil {
+			return followers, errors.Wrap(err, "GetFollowersScanner")
+		}
+		followers = append(followers, follower)
+	}
+	return followers, scanner.Err()
 }
 
 func (c *cas) Close() {

@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"strings"
+	"time"
 
 	"github.com/ankurs/Feed/Feed/service/store/cassandra"
 	"github.com/ankurs/Feed/Feed/service/store/db"
@@ -62,7 +63,6 @@ func (s *str) Register(ctx context.Context, req RegisterRequest) (LoginResponse,
 }
 
 func (s *str) Login(ctx context.Context, req LoginRequest) (LoginResponse, error) {
-
 	user, err := s.cas.CheckLogin(ctx, req.GetUserName(), req.GetPassword(), getPasswordHash)
 	if err == nil && user != nil {
 		// for now just use id as login token
@@ -105,6 +105,39 @@ func (s *str) RemoveFollow(ctx context.Context, userId, followingId string) erro
 	err = s.cas.RemoveFollower(ctx, followingId, userId)
 	if err != nil {
 		return errors.Wrap(err, "RemoveFollower")
+	}
+	return nil
+}
+
+func (s *str) CreateFeedItem(ctx context.Context, fi FeedInfo, ts time.Time) (string, error) {
+	id, err := s.cas.CreateFeedItem(ctx, fi, ts)
+	if err != nil {
+		return "", errors.Wrap(err, "AddFeedItem")
+	}
+	return id, nil
+}
+
+func (s *str) AddUserFeedItem(ctx context.Context, userId, itemId string, ts time.Time) error {
+	err := s.cas.AddUserFeedItem(ctx, userId, itemId, ts)
+	if err != nil {
+		return errors.Wrap(err, "AddUserFeedItem")
+	}
+	return nil
+}
+
+func (s *str) GetFollowers(ctx context.Context, userId string) ([]string, error) {
+	// TODO implement this as an iterator
+	followers, err := s.cas.GetFollowers(ctx, userId)
+	if err != nil {
+		return followers, errors.Wrap(err, "GetFollowers")
+	}
+	return followers, nil
+}
+
+func (s *str) AddFollowingFeedItem(ctx context.Context, userId, itemId string, ts time.Time) error {
+	err := s.cas.AddFollowingFeedItem(ctx, userId, itemId, ts)
+	if err != nil {
+		return errors.Wrap(err, "AddUserFeedItem")
 	}
 	return nil
 }

@@ -17,10 +17,10 @@ message Auth {
 
 // Feed service manages user feed
 service Feed {
-    // Fetch fetchs the activity feed
+    // Fetch fetches the activity feed
     rpc FetchFeed(FeedRequest) returns (FeedResponse) {
     }
-    // Ads an item to the feed
+    // Adds an item to the feed
     rpc AddFeed(AddFeedItemRequest) returns (AddFeedItemResponse) {
     }
 }
@@ -75,7 +75,7 @@ message FeedItem {
     // ID of this feed item
     string id = 1;
     // user who performed this activity
-    UserInfo actor = 2;
+    string actor = 2;
     // the type of activity
     Verb verb = 3;
     // this field is used to describe how the activity should
@@ -84,7 +84,7 @@ message FeedItem {
     // object on which this activity occured
     string object = 5;
     // target of user for this activity
-    UserInfo target = 6;
+    string target = 6;
 }
 
 // FeedRequest contains request parameters to fetch feed
@@ -104,6 +104,7 @@ message AddFeedItemRequest {
 
 message AddFeedItemResponse {
     StatusResponse status = 1;
+    string id = 2;
 }
 
 // FeedResponse contains all fields needed to be fetched by the user

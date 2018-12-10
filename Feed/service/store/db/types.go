@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"errors"
+	"time"
 )
 
 var (
@@ -19,6 +20,10 @@ type DB interface {
 	CheckLogin(ctx context.Context, username, password string, hash func(context.Context, string, string) string) (UserInfo, error)
 	CreateUser(ctx context.Context, req UserInfo, password string, hash func(context.Context, string, string) string) (string, error)
 	GetUser(ctx context.Context, userID string) (UserInfo, error)
+	CreateFeedItem(ctx context.Context, fi FeedInfo, ts time.Time) (string, error)
+	AddUserFeedItem(ctx context.Context, userId, itemId string, ts time.Time) error
+	AddFollowingFeedItem(ctx context.Context, userId, itemId string, ts time.Time) error
+	GetFollowers(ctx context.Context, userId string) ([]string, error)
 	Close()
 }
 
@@ -28,6 +33,15 @@ type UserInfo interface {
 	GetUserName() string
 	GetEmail() string
 	GetId() string
+}
+
+type FeedInfo interface {
+	GetId() string
+	GetActor() string
+	GetVerb() string
+	GetCVerb() string
+	GetObject() string
+	GetTarget() string
 }
 
 func BuildInterface(vals ...interface{}) []interface{} {
