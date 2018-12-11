@@ -1,9 +1,9 @@
 # Activity Feed[![Build Status](https://travis-ci.com/ankurs/Feed.svg?token=kSVweyyqayUyyfutjTqD&branch=master)](https://travis-ci.com/ankurs/Feed)
 
-## Setup Instructions
 Activity Feed is written in golang using Orion framework [https://github.com/carousell/Orion](https://github.com/carousell/Orion)
 
-please follow instructions on [https://golang.org/doc/install](https://golang.org/doc/install) to install, or you can also run
+## Setup Instructions
+You will need golang to run this project, please follow instructions on [https://golang.org/doc/install](https://golang.org/doc/install) to install, or you can also run
 ```
 brew install golang
 ```
@@ -74,13 +74,16 @@ Please install docker-compose from https://docs.docker.com/compose/ and execute 
 
 ### API definition
 The API is defined in Feed/Feed\_proto/Feed.proto
+
 Mapped URLs:
+```
          [POST] /feed/fetchfeed/ mapped to Feed_proto.Feed FetchFeed
          [POST] /feed/addfeed/ mapped to Feed_proto.Feed AddFeed
          [POST] /account/register/ mapped to Feed_proto.Account Register
          [POST] /account/login/ mapped to Feed_proto.Account Login
          [POST] /follow/addfollow/ mapped to Feed_proto.Follow AddFollow
          [POST] /follow/removefollow/ mapped to Feed_proto.Follow RemoveFollow
+```
 
 ### Cassandra schema
 please load cassandra schema from `schema.cql`
