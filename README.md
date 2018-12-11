@@ -74,13 +74,16 @@ Please install docker-compose from https://docs.docker.com/compose/ and execute 
 
 ### API definition
 The API is defined in Feed/Feed\_proto/Feed.proto
+
 Mapped URLs:
+```
          [POST] /feed/fetchfeed/ mapped to Feed_proto.Feed FetchFeed
          [POST] /feed/addfeed/ mapped to Feed_proto.Feed AddFeed
          [POST] /account/register/ mapped to Feed_proto.Account Register
          [POST] /account/login/ mapped to Feed_proto.Account Login
          [POST] /follow/addfollow/ mapped to Feed_proto.Follow AddFollow
          [POST] /follow/removefollow/ mapped to Feed_proto.Follow RemoveFollow
+```
 
 ### Cassandra schema
 please load cassandra schema from `schema.cql`
