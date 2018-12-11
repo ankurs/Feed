@@ -15,8 +15,12 @@ key="value"
 [feed.store.cassandra]
 Hosts=["cassandra:9042"]
 
+[feed.store.redis]
+Host="redis:6379"
+
 [feed.worker]
 Host="rabbitmq"
 Queue="tasks"
 Username="guest"
 Password="guest"
+

@@ -6,6 +6,7 @@ import (
 
 	"github.com/ankurs/Feed/Feed/service/store/cassandra"
 	"github.com/ankurs/Feed/Feed/service/store/db"
+	"github.com/ankurs/Feed/Feed/service/store/redis"
 )
 
 type RegisterRequest interface {
@@ -46,4 +47,5 @@ type Storage interface {
 
 type Config struct {
 	Cassandra cassandra.Config
+	Redis     redis.Config
 }

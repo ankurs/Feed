@@ -47,3 +47,12 @@ func (u userInfo) GetEmail() string {
 func (u userInfo) GetId() string {
 	return u.id
 }
+
+type feedIder struct {
+	FeedInfo
+	id string
+}
+
+func (f feedIder) GetId() string {
+	return f.id
+}

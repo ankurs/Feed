@@ -7,13 +7,15 @@ import (
 
 	"github.com/ankurs/Feed/Feed/service/store/cassandra"
 	"github.com/ankurs/Feed/Feed/service/store/db"
+	"github.com/ankurs/Feed/Feed/service/store/redis"
 	"github.com/carousell/Orion/utils/errors"
 	"github.com/carousell/Orion/utils/log"
 	"github.com/carousell/Orion/utils/spanutils"
 )
 
 type str struct {
-	cas db.DB
+	cas   db.DB
+	cache db.Cache
 }
 
 var (
@@ -59,6 +61,7 @@ func (s *str) Register(ctx context.Context, req RegisterRequest) (LoginResponse,
 	resp := loginResponse{
 		userInfo: ui,
 	}
+	s.cache.SetUser(ctx, ui)
 	return resp, nil
 }
 
@@ -76,9 +79,18 @@ func (s *str) Login(ctx context.Context, req LoginRequest) (LoginResponse, error
 }
 
 func (s *str) GetUser(ctx context.Context, userID string) (UserInfo, error) {
-	ui, err := s.cas.GetUser(ctx, userID)
+	// fetch from cache
+	ui, err := s.cache.GetUser(ctx, userID)
+	if err == nil {
+		return ui, nil
+	}
+	ui, err = s.cas.GetUser(ctx, userID)
 	if cause(err) == db.ErrNotFound {
 		return nil, ErrNoSuchUser
+	}
+	if err != nil {
+		// set it in cache
+		s.cache.SetUser(ctx, ui)
 	}
 	return ui, errors.Wrap(err, "GetUser")
 }
@@ -114,6 +126,7 @@ func (s *str) CreateFeedItem(ctx context.Context, fi FeedInfo, ts time.Time) (st
 	if err != nil {
 		return "", errors.Wrap(err, "AddFeedItem")
 	}
+	s.cache.SetFeedItem(ctx, &feedIder{FeedInfo: fi, id: id})
 	return id, nil
 }
 
@@ -144,9 +157,13 @@ func (s *str) FetchFeed(ctx context.Context, userId string, before time.Time, ft
 		return feedInfo, errors.Wrap(err, "FetchFeed")
 	}
 	for _, feed := range feeds {
-		fi, err := s.cas.FetchFeedItem(ctx, feed)
+		fi, err := s.cache.GetFeedItem(ctx, feed)
 		if err != nil {
-			return []FeedInfo{}, errors.Wrap(err, "FetchFeed")
+			fi, err = s.cas.FetchFeedItem(ctx, feed)
+			if err != nil {
+				return []FeedInfo{}, errors.Wrap(err, "FetchFeed")
+			}
+			s.cache.SetFeedItem(ctx, fi)
 		}
 		feedInfo = append(feedInfo, fi)
 	}
@@ -165,7 +182,9 @@ func NewStore(config Config) (Storage, error) {
 		log.Error(context.Background(), err)
 		return nil, errors.Wrap(err, "NewStore")
 	}
+
 	return &str{
-		cas: cas,
+		cas:   cas,
+		cache: redis.NewRedisCache(config.Redis),
 	}, nil
 }

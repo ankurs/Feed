@@ -7,7 +7,8 @@ import (
 )
 
 var (
-	ErrNotFound = errors.New("Not found")
+	ErrNotFound    = errors.New("Not found")
+	ErrInvalidData = errors.New("Invalid Data")
 )
 
 const (
@@ -32,6 +33,13 @@ type DB interface {
 	FetchFeed(ctx context.Context, userId string, before time.Time, ftype int32, limit int) ([]string, error)
 	FetchFeedItem(ctx context.Context, feedId string) (FeedInfo, error)
 	Close()
+}
+
+type Cache interface {
+	GetUser(ctx context.Context, userID string) (UserInfo, error)
+	GetFeedItem(ctx context.Context, feedId string) (FeedInfo, error)
+	SetUser(ctx context.Context, ui UserInfo) error
+	SetFeedItem(ctx context.Context, fi FeedInfo) error
 }
 
 type UserInfo interface {

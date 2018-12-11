@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package cache_proto;
+
+message UserInfo{
+    string id = 1;
+    string firstName = 2;
+    string lastName = 3;
+    string userName = 4;
+    string email = 5;
+}
+
+message FeedInfo {
+    string id = 1;
+    string actor = 2;
+    string verb = 3;
+    string cVerb = 4;
+    string object = 5;
+    string target = 6;
+    int64 ts = 7;
+}

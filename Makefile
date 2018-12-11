@@ -48,6 +48,7 @@ run:
 
 proto:
 	cd Feed/Feed_proto/; bash generate.sh
+	cd Feed/service/store/redis/cache_proto/; bash generate.sh
 
 runclient:
 	cd Feed/cmd/client; go build .; ./client
