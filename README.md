@@ -70,6 +70,9 @@ go get -u github.com/carousell/Orion/protoc-gen-orion
 ## Development
 Please install docker-compose from https://docs.docker.com/compose/ and execute `./run.sh`
 
+### Cassandra schema
+please load cassandra schema from `schema.cql`
+
 ### Links
 Once docker-compose is started
 * Hystix Dashboard is available on [http://192.168.99.100:9001/monitor/monitor.html?streams=%5B%7B%22name%22%3A%22%22%2C%22stream%22%3A%22http%3A%2F%2Ffeed%3A9283%2Fhystrix.stream%22%2C%22auth%22%3A%22%22%2C%22delay%22%3A%22%22%7D%5D](http://192.168.99.100:9001/monitor/monitor.html?streams=%5B%7B%22name%22%3A%22%22%2C%22stream%22%3A%22http%3A%2F%2Ffeed%3A9283%2Fhystrix.stream%22%2C%22auth%22%3A%22%22%2C%22delay%22%3A%22%22%7D%5D)

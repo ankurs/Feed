@@ -10,6 +10,7 @@ import (
 	"github.com/ankurs/Feed/Feed/service/store"
 	"github.com/ankurs/Feed/Feed/service/store/db"
 	"github.com/carousell/Orion/utils/errors"
+	"github.com/carousell/Orion/utils/worker"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -17,11 +18,25 @@ import (
 type svc struct {
 	config  Config
 	storage store.Storage
+	worker  worker.Worker
 }
 
 func GetService(config Config) FeedService {
+	// initialize workers
+	wConfig := worker.Config{}
+	wConfig.RabbitConfig = new(worker.RabbitMQConfig)
+	wConfig.RabbitConfig.Host = config.Worker.Host
+	wConfig.RabbitConfig.QueueName = config.Worker.Queue
+	wConfig.RabbitConfig.UserName = config.Worker.Username
+	wConfig.RabbitConfig.Password = config.Worker.Password
+
+	// initialize storage
 	str, _ := store.NewStore(config.Store)
+
 	s := new(svc)
+	s.worker = worker.NewWorker(wConfig)
+	defer s.worker.RunWorker("Worker", 10)
+	registerWorkerTask(s)
 	s.config = config
 	s.storage = str
 	return s
@@ -132,7 +147,7 @@ func (s *svc) AddFeed(ctx context.Context, req *proto.AddFeedItemRequest) (*prot
 		return resp, nil
 	}
 	// TODO move this to worker
-	go s.addFeedItemToFollowes(ctx, fi.GetActor(), id, ts)
+	s.addFeedItemToFollowes(ctx, fi.GetActor(), id, ts)
 	resp.Status = statusOK()
 	resp.Id = id
 	return resp, nil
@@ -142,13 +157,12 @@ func (s *svc) addFeedToUser(ctx context.Context, userId, feedId string, ts time.
 	return s.storage.AddUserFeedItem(ctx, userId, feedId, ts)
 }
 
-// TODO move to worker
 func (s *svc) addFeedItemToFollowes(ctx context.Context, userId, feedId string, ts time.Time) {
 	followers := s.storage.GetFollowers(ctx, userId)
 	for follower := range followers {
 		//TODO handle failure with some retry
 		if follower.GetError() == nil {
-			s.storage.AddFollowingFeedItem(ctx, follower.GetId(), feedId, ts)
+			submitFollowingFeedItem(s, ctx, follower.GetId(), feedId, ts)
 		}
 	}
 }
@@ -179,6 +193,9 @@ func (s *svc) RemoveFollow(ctx context.Context, req *proto.UnfollowRequest) (*pr
 
 func (s *svc) Close() {
 	s.storage.Close()
+	if s.worker != nil {
+		s.worker.CloseWorker()
+	}
 }
 
 func DestroyService(obj interface{}) {
