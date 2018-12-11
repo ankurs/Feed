@@ -2,6 +2,7 @@ package cassandra
 
 import (
 	"context"
+	"strconv"
 	"strings"
 	"time"
 
@@ -257,26 +258,112 @@ func (c *cas) CreateFeedItem(ctx context.Context, fi db.FeedInfo, ts time.Time) 
 	return id, nil
 }
 
-func (c *cas) GetFollowers(ctx context.Context, userId string) ([]string, error) {
-	// TODO implement this as an iterator (gocql.Scan is already an iterator)
+type dbData struct {
+	id  string
+	err error
+}
+
+func (d dbData) GetError() error {
+	return d.err
+}
+
+func (d dbData) GetId() string {
+	return d.id
+}
+
+func (c *cas) GetFollowers(ctx context.Context, userId string) <-chan db.Data {
 	name := "GetFollowers"
 	query := "SELECT follower FROM follow.follower WHERE user = ?"
-	followers := make([]string, 0)
 	q := c.CassandraGetQuery(
 		ctx, name, query,
 		db.BuildInterface(userId),
 		c.consistency,
 	)
+	data := make(chan db.Data, 5)
+	scanner := q.Iter().Scanner()
+	go func() {
+		defer close(data)
+		for scanner.Next() {
+			follower := ""
+			d := dbData{}
+			err := scanner.Scan(&follower)
+			if err != nil {
+				d.err = err
+			} else {
+				d.id = follower
+			}
+			select {
+			case data <- dbData{id: follower, err: err}:
+			case <-ctx.Done():
+				// close if context is done
+				return
+			}
+		}
+
+	}()
+	return data
+}
+
+func (c *cas) FetchFeed(ctx context.Context, userId string, before time.Time, ftype int32, limit int) ([]string, error) {
+	name := "FetchFeed"
+
+	table := "feed.following"
+	if ftype == db.USER_FEED {
+		table = "feed.user"
+	}
+
+	if limit < 0 {
+		limit = 20
+	} else if limit > 50 {
+		limit = 50
+	}
+
+	query := "SELECT feed FROM " + table + " WHERE user = ? AND ts < ? LIMIT " + strconv.Itoa(limit)
+	q := c.CassandraGetQuery(
+		ctx, name, query,
+		db.BuildInterface(userId, before),
+		c.consistency,
+	)
+	feeds := make([]string, 0)
 	scanner := q.Iter().Scanner()
 	for scanner.Next() {
-		follower := ""
-		err := scanner.Scan(&follower)
+		feed := ""
+		err := scanner.Scan(&feed)
 		if err != nil {
-			return followers, errors.Wrap(err, "GetFollowersScanner")
+			return []string{}, err
 		}
-		followers = append(followers, follower)
+		feeds = append(feeds, feed)
 	}
-	return followers, scanner.Err()
+	return feeds, nil
+}
+
+func (c *cas) FetchFeedItem(ctx context.Context, feedId string) (db.FeedInfo, error) {
+	name := "FetchFeedItem"
+	query := "SELECT actor, verb, cverb, object, target, ts FROM feed.items WHERE id = ?"
+
+	actor := ""
+	verb := ""
+	cverb := ""
+	object := ""
+	target := ""
+	ts := time.Time{}
+
+	err := c.CassandraExec(
+		ctx, name, query,
+		db.BuildInterface(feedId),
+		db.BuildInterface(&actor, &verb, &cverb, &object, &target, &ts),
+	)
+	if err == nil {
+		return feedInfo{
+			id:     feedId,
+			actor:  actor,
+			verb:   verb,
+			cverb:  cverb,
+			object: object,
+			ts:     ts.Unix(),
+		}, nil
+	}
+	return nil, errors.Wrap(err, name)
 }
 
 func (c *cas) Close() {

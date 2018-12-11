@@ -55,3 +55,41 @@ func (u userInfo) GetEmail() string {
 func (u userInfo) GetId() string {
 	return u.id
 }
+
+type feedInfo struct {
+	id     string
+	actor  string
+	verb   string
+	cverb  string
+	object string
+	target string
+	ts     int64
+}
+
+func (f feedInfo) GetId() string {
+	return f.id
+}
+
+func (f feedInfo) GetActor() string {
+	return f.actor
+}
+
+func (f feedInfo) GetVerb() string {
+	return f.verb
+}
+
+func (f feedInfo) GetCVerb() string {
+	return f.cverb
+}
+
+func (f feedInfo) GetObject() string {
+	return f.object
+}
+
+func (f feedInfo) GetTarget() string {
+	return f.target
+}
+
+func (f feedInfo) GetTs() int64 {
+	return f.ts
+}

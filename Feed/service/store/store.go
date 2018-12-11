@@ -125,13 +125,8 @@ func (s *str) AddUserFeedItem(ctx context.Context, userId, itemId string, ts tim
 	return nil
 }
 
-func (s *str) GetFollowers(ctx context.Context, userId string) ([]string, error) {
-	// TODO implement this as an iterator
-	followers, err := s.cas.GetFollowers(ctx, userId)
-	if err != nil {
-		return followers, errors.Wrap(err, "GetFollowers")
-	}
-	return followers, nil
+func (s *str) GetFollowers(ctx context.Context, userId string) <-chan db.Data {
+	return s.cas.GetFollowers(ctx, userId)
 }
 
 func (s *str) AddFollowingFeedItem(ctx context.Context, userId, itemId string, ts time.Time) error {
@@ -140,6 +135,22 @@ func (s *str) AddFollowingFeedItem(ctx context.Context, userId, itemId string, t
 		return errors.Wrap(err, "AddUserFeedItem")
 	}
 	return nil
+}
+
+func (s *str) FetchFeed(ctx context.Context, userId string, before time.Time, ftype int32, limit int) ([]FeedInfo, error) {
+	feedInfo := make([]FeedInfo, 0)
+	feeds, err := s.cas.FetchFeed(ctx, userId, before, ftype, limit)
+	if err != nil {
+		return feedInfo, errors.Wrap(err, "FetchFeed")
+	}
+	for _, feed := range feeds {
+		fi, err := s.cas.FetchFeedItem(ctx, feed)
+		if err != nil {
+			return []FeedInfo{}, errors.Wrap(err, "FetchFeed")
+		}
+		feedInfo = append(feedInfo, fi)
+	}
+	return feedInfo, nil
 }
 
 func (s *str) Close() {

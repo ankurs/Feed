@@ -85,6 +85,8 @@ message FeedItem {
     string object = 5;
     // target of user for this activity
     string target = 6;
+    // ts represents timestamp(epoch) when this item was posted
+    int64 ts = 7;
 }
 
 // FeedRequest contains request parameters to fetch feed
@@ -93,8 +95,10 @@ message FeedRequest {
     Auth auth = 1;
     // number of items to fetch
     int32 count = 2;
-    // if userID is present we fetch feed OF that user
+    // if userID is present we fetch feed OF that user otherwise following feed
     string userID  = 3;
+    // after represents timestamp(epoch) after which we try to fetch from feed
+    int64 before = 4;
 }
 
 message AddFeedItemRequest {

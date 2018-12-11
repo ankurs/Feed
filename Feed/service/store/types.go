@@ -39,7 +39,8 @@ type Storage interface {
 	CreateFeedItem(ctx context.Context, fi FeedInfo, ts time.Time) (string, error)
 	AddUserFeedItem(ctx context.Context, userId, itemId string, ts time.Time) error
 	AddFollowingFeedItem(ctx context.Context, userId, itemId string, ts time.Time) error
-	GetFollowers(ctx context.Context, userId string) ([]string, error)
+	GetFollowers(ctx context.Context, userId string) <-chan db.Data
+	FetchFeed(ctx context.Context, userId string, before time.Time, ftype int32, limit int) ([]FeedInfo, error)
 	Close()
 }
 

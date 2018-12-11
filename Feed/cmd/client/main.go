@@ -27,19 +27,20 @@ func main() {
 	register2(a)
 
 	// get users from login
-	u1 := login(a, "ABCXYZ", "password")
-	u2 := login(a, "LMNOPQ", "password")
+	u1, a1 := login(a, "ABCXYZ", "password")
+	u2, _ := login(a, "LMNOPQ", "password")
 
 	f := proto.NewFollowClient(conn)
 	follow(f, u1, u2)
 	follow(f, u2, u1)
-	unfollow(f, u1, u2)
+	//unfollow(f, u1, u2)
 
 	feed := proto.NewFeedClient(conn)
-	addFeedItem(feed, u1)
+	addFeedItem(feed, u2)
+	fetchFeed(feed, a1)
 }
 
-func login(c proto.AccountClient, user, pwd string) *proto.UserInfo {
+func login(c proto.AccountClient, user, pwd string) (*proto.UserInfo, *proto.Auth) {
 	fmt.Println("making login gRPC call")
 	req := new(proto.LoginRequest)
 	req.UserName = user //"ABCXYZ"
@@ -49,7 +50,7 @@ func login(c proto.AccountClient, user, pwd string) *proto.UserInfo {
 		log.Fatalf("error: %v", err)
 	}
 	log.Printf("Response : %s", r)
-	return r.GetUser()
+	return r.GetUser(), r.GetAuth()
 }
 
 func register1(c proto.AccountClient) *proto.RegisterResponse {
@@ -111,6 +112,17 @@ func addFeedItem(f proto.FeedClient, user *proto.UserInfo) {
 	req.Item.Actor = user.GetId()
 	req.Item.Verb = proto.Verb_POST
 	r, err := f.AddFeed(context.Background(), req)
+	if err != nil {
+		log.Fatalf("error: %v", err)
+	}
+	log.Printf("Response : %s", r)
+}
+
+func fetchFeed(f proto.FeedClient, a *proto.Auth) {
+	req := new(proto.FeedRequest)
+	req.Auth = a
+	req.Count = 10
+	r, err := f.FetchFeed(context.Background(), req)
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}

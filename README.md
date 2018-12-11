@@ -77,3 +77,4 @@ Once docker-compose is started
 * Pprof is available on [http://192.168.99.100:9284/debug/pprof/](http://192.168.99.100:9284/debug/pprof/)
     * pprof documentation [https://golang.org/pkg/net/http/pprof/](https://golang.org/pkg/net/http/pprof/)
 * Zipkin spans are available on [http://192.168.99.100:9411/zipkin/](http://192.168.99.100:9411/zipkin/)
+* RabbitMQ dashboard is available on [http://guest192.168.99.100:15672/](http://192.168.99.100:15672/) user/pass -> guest/guest

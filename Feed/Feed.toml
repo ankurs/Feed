@@ -14,3 +14,9 @@ key="value"
 
 [feed.store.cassandra]
 Hosts=["cassandra:9042"]
+
+[feed.worker]
+Host="rabbit:5672"
+Queue="tasks"
+Username="guest"
+Password="guest"

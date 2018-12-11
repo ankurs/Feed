@@ -10,6 +10,11 @@ var (
 	ErrNotFound = errors.New("Not found")
 )
 
+const (
+	FOLLOWING_FEED int32 = iota
+	USER_FEED
+)
+
 type DB interface {
 	AddFollowing(ctx context.Context, userId, followingId string) error
 	AddFollower(ctx context.Context, userId, followerId string) error
@@ -23,7 +28,9 @@ type DB interface {
 	CreateFeedItem(ctx context.Context, fi FeedInfo, ts time.Time) (string, error)
 	AddUserFeedItem(ctx context.Context, userId, itemId string, ts time.Time) error
 	AddFollowingFeedItem(ctx context.Context, userId, itemId string, ts time.Time) error
-	GetFollowers(ctx context.Context, userId string) ([]string, error)
+	GetFollowers(ctx context.Context, userId string) <-chan Data
+	FetchFeed(ctx context.Context, userId string, before time.Time, ftype int32, limit int) ([]string, error)
+	FetchFeedItem(ctx context.Context, feedId string) (FeedInfo, error)
 	Close()
 }
 
@@ -42,6 +49,12 @@ type FeedInfo interface {
 	GetCVerb() string
 	GetObject() string
 	GetTarget() string
+	GetTs() int64
+}
+
+type Data interface {
+	GetError() error
+	GetId() string
 }
 
 func BuildInterface(vals ...interface{}) []interface{} {

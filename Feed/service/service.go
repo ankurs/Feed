@@ -3,12 +3,13 @@ package service
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	proto "github.com/ankurs/Feed/Feed/Feed_proto"
 	"github.com/ankurs/Feed/Feed/service/store"
+	"github.com/ankurs/Feed/Feed/service/store/db"
 	"github.com/carousell/Orion/utils/errors"
-	"github.com/carousell/Orion/utils/log"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -83,8 +84,36 @@ func (s *svc) Login(ctx context.Context, req *proto.LoginRequest) (*proto.LoginR
 	return resp, nil
 }
 
-func (s *svc) FetchFeed(context.Context, *proto.FeedRequest) (*proto.FeedResponse, error) {
-	panic("not implemented")
+func (s *svc) FetchFeed(ctx context.Context, req *proto.FeedRequest) (*proto.FeedResponse, error) {
+	resp := new(proto.FeedResponse)
+	resp.Items = make([]*proto.FeedItem, 0)
+	user := req.GetAuth().GetToken()
+	ftype := db.FOLLOWING_FEED
+	if req.GetUserID() != "" {
+		user = req.GetUserID()
+		ftype = db.USER_FEED
+	}
+	before := time.Now()
+	if req.GetBefore() > 0 {
+		before = time.Unix(req.GetBefore(), 0)
+	}
+	feeds, err := s.storage.FetchFeed(ctx, user, before, ftype, int(req.GetCount()))
+	if err != nil {
+		resp.Status = statusCustom(500, true, "could not fetch feed: "+err.Error())
+		return resp, nil
+	}
+	for _, f := range feeds {
+		feed := new(proto.FeedItem)
+		feed.Id = f.GetId()
+		feed.Actor = f.GetActor()
+		feed.Verb = proto.Verb(proto.Verb_value[strings.ToUpper(f.GetVerb())])
+		feed.CompatibilityVerb = proto.Verb(proto.Verb_value[strings.ToUpper(f.GetCVerb())])
+		feed.Object = f.GetObject()
+		feed.Target = f.GetTarget()
+		feed.Ts = f.GetTs()
+		resp.Items = append(resp.Items, feed)
+	}
+	return resp, nil
 }
 
 func (s *svc) AddFeed(ctx context.Context, req *proto.AddFeedItemRequest) (*proto.AddFeedItemResponse, error) {
@@ -102,6 +131,7 @@ func (s *svc) AddFeed(ctx context.Context, req *proto.AddFeedItemRequest) (*prot
 		resp.Status = statusCustom(500, true, "could not add feed: "+err.Error())
 		return resp, nil
 	}
+	// TODO move this to worker
 	go s.addFeedItemToFollowes(ctx, fi.GetActor(), id, ts)
 	resp.Status = statusOK()
 	resp.Id = id
@@ -114,15 +144,12 @@ func (s *svc) addFeedToUser(ctx context.Context, userId, feedId string, ts time.
 
 // TODO move to worker
 func (s *svc) addFeedItemToFollowes(ctx context.Context, userId, feedId string, ts time.Time) {
-	followers, err := s.storage.GetFollowers(ctx, userId)
-	if err != nil {
+	followers := s.storage.GetFollowers(ctx, userId)
+	for follower := range followers {
 		//TODO handle failure with some retry
-		log.Error(ctx, "err", err)
-		return
-	}
-	for _, follower := range followers {
-		//TODO handle failure with some retry
-		s.storage.AddFollowingFeedItem(ctx, follower, feedId, ts)
+		if follower.GetError() == nil {
+			s.storage.AddFollowingFeedItem(ctx, follower.GetId(), feedId, ts)
+		}
 	}
 }
 
@@ -151,7 +178,7 @@ func (s *svc) RemoveFollow(ctx context.Context, req *proto.UnfollowRequest) (*pr
 }
 
 func (s *svc) Close() {
-	// do nothing
+	s.storage.Close()
 }
 
 func DestroyService(obj interface{}) {
