@@ -1,7 +1,9 @@
 # Activity Feed[![Build Status](https://travis-ci.com/ankurs/Feed.svg?token=kSVweyyqayUyyfutjTqD&branch=master)](https://travis-ci.com/ankurs/Feed)
 
 ## Setup Instructions
-Orion-Builder is written in golang, please follow instructions on [https://golang.org/doc/install](https://golang.org/doc/install) to install, or you can also run
+Activity Feed is written in golang using Framework [https://github.com/carousell/Orion](https://github.com/carousell/Orion)
+
+please follow instructions on [https://golang.org/doc/install](https://golang.org/doc/install) to install, or you can also run
 ```
 brew install golang
 ```
@@ -70,6 +72,16 @@ go get -u github.com/carousell/Orion/protoc-gen-orion
 ## Development
 Please install docker-compose from https://docs.docker.com/compose/ and execute `./run.sh`
 
+### API definition
+The API is defined in Feed/Feed\_proto/Feed.proto
+Mapped URLs:
+         [POST] /feed/fetchfeed/ mapped to Feed_proto.Feed FetchFeed
+         [POST] /feed/addfeed/ mapped to Feed_proto.Feed AddFeed
+         [POST] /account/register/ mapped to Feed_proto.Account Register
+         [POST] /account/login/ mapped to Feed_proto.Account Login
+         [POST] /follow/addfollow/ mapped to Feed_proto.Follow AddFollow
+         [POST] /follow/removefollow/ mapped to Feed_proto.Follow RemoveFollow
+
 ### Cassandra schema
 please load cassandra schema from `schema.cql`
 
@@ -81,3 +93,6 @@ Once docker-compose is started
     * pprof documentation [https://golang.org/pkg/net/http/pprof/](https://golang.org/pkg/net/http/pprof/)
 * Zipkin spans are available on [http://192.168.99.100:9411/zipkin/](http://192.168.99.100:9411/zipkin/)
 * RabbitMQ dashboard is available on [http://guest192.168.99.100:15672/](http://192.168.99.100:15672/) user/pass -> guest/guest
+
+### Demo
+You can execute Feed/cmd/client/main.go to run the demo
