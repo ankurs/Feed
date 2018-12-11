@@ -1,9 +1,9 @@
 # Activity Feed[![Build Status](https://travis-ci.com/ankurs/Feed.svg?token=kSVweyyqayUyyfutjTqD&branch=master)](https://travis-ci.com/ankurs/Feed)
 
-## Setup Instructions
 Activity Feed is written in golang using Orion framework [https://github.com/carousell/Orion](https://github.com/carousell/Orion)
 
-please follow instructions on [https://golang.org/doc/install](https://golang.org/doc/install) to install, or you can also run
+## Setup Instructions
+You will need golang to run this project, please follow instructions on [https://golang.org/doc/install](https://golang.org/doc/install) to install, or you can also run
 ```
 brew install golang
 ```
