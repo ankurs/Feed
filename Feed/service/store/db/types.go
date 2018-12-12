@@ -40,6 +40,9 @@ type Cache interface {
 	GetFeedItem(ctx context.Context, feedId string) (FeedInfo, error)
 	SetUser(ctx context.Context, ui UserInfo) error
 	SetFeedItem(ctx context.Context, fi FeedInfo) error
+	AddUserFeedItem(ctx context.Context, userId, itemId string, ts time.Time) error
+	AddFollowingFeedItem(ctx context.Context, userId, itemId string, ts time.Time) error
+	FetchFeed(ctx context.Context, userId string, before time.Time, ftype int32, limit int) ([]string, error)
 }
 
 type UserInfo interface {

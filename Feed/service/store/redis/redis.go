@@ -3,6 +3,7 @@ package redis
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/ankurs/Feed/Feed/service/store/db"
@@ -14,16 +15,18 @@ import (
 )
 
 const (
-	userPrefix string = "user::"
-	feedPrefix string = "feed::"
+	userPrefix        string = "user::"
+	feedPrefix        string = "feed::"
+	usersFeedPrefix   string = "user:feed::"
+	usersFollowPrefix string = "user:follow::"
 )
 
-type r struct {
+type cache struct {
 	client *redis.Client
 	expiry time.Duration
 }
 
-func (r *r) GetUser(ctx context.Context, userID string) (db.UserInfo, error) {
+func (r *cache) GetUser(ctx context.Context, userID string) (db.UserInfo, error) {
 	span, ctx := spanutils.NewDatastoreSpan(ctx, "GetUser", "Redis")
 	defer span.Finish()
 	key := userPrefix + userID
@@ -47,7 +50,7 @@ func (r *r) GetUser(ctx context.Context, userID string) (db.UserInfo, error) {
 	return userInfo, nil
 }
 
-func (r *r) GetFeedItem(ctx context.Context, feedId string) (db.FeedInfo, error) {
+func (r *cache) GetFeedItem(ctx context.Context, feedId string) (db.FeedInfo, error) {
 	span, ctx := spanutils.NewDatastoreSpan(ctx, "GetFeedItem", "Redis")
 	defer span.Finish()
 	key := feedPrefix + feedId
@@ -71,7 +74,7 @@ func (r *r) GetFeedItem(ctx context.Context, feedId string) (db.FeedInfo, error)
 	return feedInfo, nil
 }
 
-func (r *r) SetUser(ctx context.Context, ui db.UserInfo) error {
+func (r *cache) SetUser(ctx context.Context, ui db.UserInfo) error {
 	span, ctx := spanutils.NewDatastoreSpan(ctx, "SetUser", "Redis")
 	defer span.Finish()
 
@@ -90,7 +93,7 @@ func (r *r) SetUser(ctx context.Context, ui db.UserInfo) error {
 			span.SetError(err.Error())
 			return errors.Wrap(err, "SetUser")
 		}
-		err = r.client.SetNX(key, data, r.expiry).Err()
+		err = r.client.Set(key, data, r.expiry).Err()
 		if err != nil {
 			span.SetError(err.Error())
 		}
@@ -99,7 +102,7 @@ func (r *r) SetUser(ctx context.Context, ui db.UserInfo) error {
 	return db.ErrInvalidData
 }
 
-func (r *r) SetFeedItem(ctx context.Context, fi db.FeedInfo) error {
+func (r *cache) SetFeedItem(ctx context.Context, fi db.FeedInfo) error {
 	span, ctx := spanutils.NewDatastoreSpan(ctx, "SetFeedItem", "Redis")
 	defer span.Finish()
 
@@ -120,13 +123,77 @@ func (r *r) SetFeedItem(ctx context.Context, fi db.FeedInfo) error {
 			span.SetError(err.Error())
 			return errors.Wrap(err, "SetFeedItem")
 		}
-		err = r.client.SetNX(key, data, r.expiry).Err()
+		err = r.client.Set(key, data, r.expiry).Err()
 		if err != nil {
 			span.SetError(err.Error())
 		}
 		return errors.Wrap(err, "SetFeedItem")
 	}
 	return db.ErrInvalidData
+}
+
+func (r *cache) AddUserFeedItem(ctx context.Context, userId, itemId string, ts time.Time) error {
+	if userId != "" && itemId != "" {
+		name := "AddUserFeedItem"
+		key := usersFeedPrefix + userId
+		return r.addFeedItem(ctx, name, key, itemId, ts)
+	}
+	return db.ErrInvalidData
+}
+
+func (r *cache) AddFollowingFeedItem(ctx context.Context, userId, itemId string, ts time.Time) error {
+	if userId != "" && itemId != "" {
+		name := "AddFollowingFeedItem"
+		key := usersFollowPrefix + userId
+		return r.addFeedItem(ctx, name, key, itemId, ts)
+	}
+	return db.ErrInvalidData
+}
+
+func (r *cache) addFeedItem(ctx context.Context, name, key, itemId string, ts time.Time) error {
+	span, ctx := spanutils.NewDatastoreSpan(ctx, name, "Redis")
+	defer span.Finish()
+
+	if key != "" {
+		span.SetTag("key", key)
+		z := redis.Z{
+			Member: itemId,
+			Score:  float64(ts.Unix()),
+		}
+		// TODO add size checks as well
+		err := r.client.ZAdd(key, z).Err()
+		if err != nil {
+			span.SetError(err.Error())
+			return errors.Wrap(err, name)
+		}
+	}
+	return db.ErrInvalidData
+
+}
+
+func (r *cache) FetchFeed(ctx context.Context, userId string, before time.Time, ftype int32, limit int) ([]string, error) {
+	span, ctx := spanutils.NewDatastoreSpan(ctx, "FetchFeed", "Redis")
+	defer span.Finish()
+
+	prefix := usersFollowPrefix
+	if ftype == db.USER_FEED {
+		prefix = usersFeedPrefix
+	}
+
+	if limit < 0 {
+		limit = 20
+	} else if limit > 50 {
+		limit = 50
+	}
+
+	key := prefix + userId
+	span.SetTag("key", key)
+	opt := redis.ZRangeBy{
+		Max:   strconv.FormatInt(before.Unix(), 10),
+		Min:   "0",
+		Count: int64(limit),
+	}
+	return r.client.ZRevRangeByScore(key, opt).Result()
 }
 
 type Config struct {
@@ -139,7 +206,7 @@ func NewRedisCache(config Config) db.Cache {
 	if config.Expiry < 1 {
 		config.Expiry = 5 * 60 // 5 min
 	}
-	return &r{
+	return &cache{
 		client: redis.NewClient(&redis.Options{
 			Addr: config.Host,
 		}),

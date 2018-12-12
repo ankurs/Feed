@@ -61,7 +61,7 @@ func (s *str) Register(ctx context.Context, req RegisterRequest) (LoginResponse,
 	resp := loginResponse{
 		userInfo: ui,
 	}
-	s.cache.SetUser(ctx, ui)
+	go s.cache.SetUser(ctx, ui)
 	return resp, nil
 }
 
@@ -90,7 +90,7 @@ func (s *str) GetUser(ctx context.Context, userID string) (UserInfo, error) {
 	}
 	if err != nil {
 		// set it in cache
-		s.cache.SetUser(ctx, ui)
+		go s.cache.SetUser(ctx, ui)
 	}
 	return ui, errors.Wrap(err, "GetUser")
 }
@@ -135,6 +135,7 @@ func (s *str) AddUserFeedItem(ctx context.Context, userId, itemId string, ts tim
 	if err != nil {
 		return errors.Wrap(err, "AddUserFeedItem")
 	}
+	s.cache.AddUserFeedItem(ctx, userId, itemId, ts)
 	return nil
 }
 
@@ -147,14 +148,19 @@ func (s *str) AddFollowingFeedItem(ctx context.Context, userId, itemId string, t
 	if err != nil {
 		return errors.Wrap(err, "AddUserFeedItem")
 	}
+	s.cache.AddFollowingFeedItem(ctx, userId, itemId, ts)
 	return nil
 }
 
 func (s *str) FetchFeed(ctx context.Context, userId string, before time.Time, ftype int32, limit int) ([]FeedInfo, error) {
 	feedInfo := make([]FeedInfo, 0)
-	feeds, err := s.cas.FetchFeed(ctx, userId, before, ftype, limit)
+	// TODO check for out of sync
+	feeds, err := s.cache.FetchFeed(ctx, userId, before, ftype, limit)
 	if err != nil {
-		return feedInfo, errors.Wrap(err, "FetchFeed")
+		feeds, err = s.cas.FetchFeed(ctx, userId, before, ftype, limit)
+		if err != nil {
+			return feedInfo, errors.Wrap(err, "FetchFeed")
+		}
 	}
 	for _, feed := range feeds {
 		fi, err := s.cache.GetFeedItem(ctx, feed)
